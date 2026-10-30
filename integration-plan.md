@@ -1,196 +1,111 @@
-# IT Infrastructure 통합 작업 계획
+# Integration Plan
 
-[README](README.md) · [회사·네트워크 기준](company-spec.md)
+[README](README.md) · [Company Specification](company-spec.md) · [How-to Guide](HowTo.md)
 
-상태: 2026-10-30 갱신. [진행 기록](progress-2026-10-30.md)의 화면 확인·사용자 완료 보고·미검증 항목을 구분한다.
+## Objective
 
-현재 결정: Cloud Sync 미해결로 보존, Connect Sync 사용. 직원 70명 전체 동기화 및 예약 동기화 완료 보고. Emma 로그인·속성 반영 검증. 다음 작업은 부서 그룹·GPO·파일 권한이다.
-기존 Homelab AD는 보존하고 별도 실험용 jh.test AD를 사용한다. 기존 cloud-only 직원 10명은 사용자 결정으로 삭제했으며 관리자·Sales 계정은 유지한다.
-기준: 기존 Network Infrastructure Lab을 변경하지 않고 기존 On-prem AD와 M365를 맞춘다.
+Connect the existing network design, on-premises AD work, and M365/Entra/Intune work into one company scenario. The original projects remain visible as foundations; this repository records the integration and its evidence.
 
-## 목표와 작업 원칙
+The Packet Tracer design remains unchanged. VMware reproduces selected design elements, not a physical connection to the simulation.
 
-개별 랩에서 익힌 네트워크·계정·클라우드 관리 기능을 같은 회사의 운영 흐름으로 연결한다.
-70명 직원 계정과 부서별 대표 테스트 장치를 사용한다. 70대 PC를 구현하는 작업은 아니다.
+## Status as of October 30, 2026
 
-- 기존 Homelab AD를 보존하고, 별도 실험용 jh.test AD를 통합에 재사용한다.
-- 기존 OU·그룹은 새 구조로 이동하고 검증한 뒤 정리한다.
-- 기존 Entra cloud-only 직원 10명은 사용자 결정으로 삭제 완료. 매칭 계획을 폐기하고 AD 70명을 직원 정본으로 사용한다.
-- 동기화는 전 직원이 아니라 신규 pilot 1명으로 시작한다.
-- 계정/GPO 변경과 IP/DHCP/DNS 변경을 나누어 원인을 추적한다.
-- 실제 연결: AD → Entra/M365. PT ↔ VMware: 같은 회사 설계의 별도 구현.
-- 상태: 검증됨 / 부분 검증 / 계획 / 미해결. 원인과 가설을 구분한다.
-- 비밀번호·토큰·복구 키를 문서·CSV·스크린샷에 공개하지 않는다.
-- 실제 시간·성공·실패·건너뜀 건수는 측정 후 기록한다.
+| Original step | Current status | Remaining work |
+|---|---|---|
+| 1. Confirm departments, 70-person allocation, and addressing | Complete as a specification | Implement remaining VMware department segments |
+| 2. Prepare AD pilot and validate AD/DNS | Complete for pilot preparation and DNS check | Retain broader DC health and post-reboot evidence |
+| 3. Verify Entra sync and pilot login first | Complete with Connect Sync | Cloud Sync cause remains unresolved; no requirement to restore it |
+| 4. Expand OUs, users, groups, GPO, logon limits, file permissions | Users/groups/shares configured | Client access, group membership evidence, GPO, and logon tests pending |
+| 5. Align VMware IP, DHCP, DNS and retest | Server segment/router/DNS complete | Router persistence, department subnets, DHCP scopes, relay and lease evidence |
+| 6. Reconcile existing cloud users and validate M365/Intune | Old test users removed and 70 employees synced | New-workforce licenses, mailbox/service and endpoint tests |
 
-## 전체 계획표
+The work is not assigned an overall percentage: configuring an ACL, testing an employee's access, and validating endpoint management are different acceptance gates.
 
-아래 시간은 실행 및 증거 정리의 추정치이며 보장 시간이 아니다. VM 대기·제품 요구 사항·provisioning 문제에 따라 달라진다.
+## Completed work
 
-| 순서 | 작업 | 예상 작업 시간 | 완료 조건 |
-|---|---|---|---|
-| 1 | PT 기준 부서·70명 인원·주소 설계 확정, 현황 조사 | 2–3h | 기준표와 현재/목표 대응표 확보 |
-| 2 | 기존 AD에 pilot OU·그룹·사용자 1명 준비, AD/DNS 확인 | 1–2h | 도메인 로그인·기본 진단 정상 |
-| 3 | Entra 동기화·로그인 우선 검증 | 최초 조사 3h 상한 | 성공 증거 또는 다음 판단을 위한 실패 기록 |
-| 4 | 부서 OU·70명·GPO·로그인 제한·파일 권한 확장 | 6–9h | 인원·권한·입사/이동/퇴사 검증 |
-| 5 | VMware IP·DHCP·DNS 조정 및 재검증 | 4–7h | 대표 부서 클라이언트의 주소·DNS·인증·relay 경로 확인 |
-| 6 | AD 직원 기준 M365·Intune 검증 | 3–5h | 동기화된 직원 일부의 메일·장치·정책 결과 확인 |
+- [x] Preserve the original Homelab AD; use the separate jh.test domain for integration.
+- [x] Adopt fixed Packet Tracer addressing and department totals: 8 / 35 / 22 / 5.
+- [x] Create the 70-person CSV and AD employee accounts.
+- [x] Use lowercase firstnamelastname account names.
+- [x] Configure the tenant UPN suffix and align employee UPNs.
+- [x] Place Emma in Entra-Pilot and keep her HR department attribute.
+- [x] Implement the VMnet3 server segment and Ubuntu-to-VMnet8 outbound routing.
+- [x] Correct the DC's DNS configuration; owner reported the DNS test passed.
+- [x] Investigate Cloud Sync and retain its unresolved status.
+- [x] Use Connect Sync with Password Hash Synchronization for the pilot.
+- [x] Resolve Emma's temporary-password state and verify her cloud sign-in.
+- [x] Observe an AD job-title update in Entra.
+- [x] Remove the old cloud-only test employees while retaining administrator and Sales objects.
+- [x] Expand sync scope and observe the 72-user directory.
+- [x] Configure departmental GG/DL groups and four shares; verify supplied share/NTFS ACL output.
+- [x] Identify the client preparation blocker without disconnecting the existing Intune VM.
+- [x] Update the integration documentation in English.
 
-합계: 최초 Step 3 조사 포함 약 19–29h. 추가 Connect Sync 구축·비교 조사는 별도 산정한다.
-20h 주말에는 모든 단계 완료를 보장하지 않는다. Step 3이 막히면 실제 Hybrid 완료 일정은 보류하고, 독립적으로 가능한 AD 작업을 진행한다.
+Group setup is recorded from the owner's progression through the procedure. Final direct membership counts still need captured verification.
 
-## Step 1 — 기준 확정과 현황 보존
+## Gate A — Functional on-premises client
 
-- [ ] company-spec.md의 원본 부서 인원 확인: HR 8 / ENG 35 / Sales-Marketing 22 / IT 5 = 70
-- [ ] PT 최종 VLAN·gateway·DHCP·DNS 표 확인. PT 구성 변경 없음
-- [ ] 기존 AD 도메인·DC IP·DNS·DHCP scope·VMnet·라우팅·외부 연결 현황 기록
-- [ ] 기존 OU·사용자·그룹·GPO 링크/필터·공유/NTFS 권한 목록 확보
-- [ ] 기존 스크립트·CSV·GPO 백업과 VM 복구 지점 확보
-- [ ] M365 trial/라이선스 상태와 남은 기간 확인
-- [ ] Entra 10명의 UPN·메일 주소/별칭·관리 역할·그룹·라이선스·메일박스·장치 관계 기록
-- [ ] 현재 값 / 목표 값 / 변경 시점 / 검증 방법 / 되돌리기 방법 대응표 작성
-- [ ] UPN suffix는 AD 도메인과 별도로 검토하고 공식 요구 사항을 확인한 뒤 확정
-- [ ] 기존 HR/Finance → HR 표기 대응과 기존 Finance/Operations 사용자 배치 결정
+- [ ] Reinstall win-lab with verified Windows 11 Pro/Enterprise media.
+- [ ] Establish a known local administrator and verify it before identity changes.
+- [ ] Verify edition and dsregcmd state.
+- [ ] Place the representative client on VMnet3 with correct gateway and AD DNS.
+- [ ] Join jh.test and verify domain membership.
+- [ ] Verify GG user counts and GG-to-DL nesting, including Emma in HR.
+- [ ] Confirm Emma can create, read, edit, and delete in HR$.
+- [ ] Confirm Emma is denied ENG$, SM$, and IT$.
+- [ ] Test the empty read groups with a designated temporary test assignment if needed, then remove that assignment.
+- [ ] Retain screenshots or transcripts showing the test identity and outcome.
 
-산출물: 확정된 company-spec, 현황 목록, 변경·복구 계획.
-현재 company-spec에 PT 기준과 jh.test AD의 실제 서버망·UPN 상태를 함께 기록했다. 부서별 DHCP/relay 구현은 아직 완료하지 않았다.
+Do not interpret a successful SMB test as proof of workstation logon restriction.
 
-## Step 2 — 기존 AD에서 최소 pilot 준비
+## Gate B — GPO and lifecycle
 
-- [ ] 기존 도메인 유지. pilot OU와 권한 시험용 그룹 준비
-- [ ] 기존 Entra 10명과 UPN/SMTP가 겹치지 않는 일반 pilot 계정 1명 생성
-- [ ] pilot을 직원 70명에 포함할지 임시 진단 계정으로 분리할지 기록
-- [ ] dcdiag 및 DNS 진단으로 AD/DNS 기본 상태 확인
-- [ ] 클라이언트의 AD DNS 사용·도메인 검색·온라인 도메인 로그인 확인
-- [ ] 동기화 방식별 지원 OS·권한·통신·시간·UPN 요구 사항 확인
-- [ ] 기존 provisioning 구성의 활성 상태와 대상 OU 확인
+- [ ] Create appropriate client computer OUs and place the client correctly.
+- [ ] Build scoped client GPOs; keep ordinary employee restrictions off the DC.
+- [ ] Test same-department logon and cross-department denial with representative workstation/user pairs.
+- [ ] Record gpresult /r or equivalent resultant policy evidence.
+- [ ] Joiner: create a designated test user, apply groups, and verify expected resource/cloud access.
+- [ ] Mover: change a designated user's department and remove old access before confirming new access.
+- [ ] Leaver: disable a designated test user and validate the resulting access/sign-in controls.
+- [ ] Keep synchronization scope stable during OU moves; scope removal can delete the cloud object.
 
-완료 조건: 기본 AD/DNS가 정상이며 pilot의 속성과 동기화 범위가 명확하다.
-이 단계에서 전체 IP 변경이나 기존 부서 삭제를 동시에 수행하지 않는다.
+## Gate C — Network implementation
 
-## Step 3 — Entra 동기화·로그인 검증
+- [ ] Confirm IPv4 forwarding and NAT survive a router reboot.
+- [ ] Retest DC DNS and outbound HTTPS after startup.
+- [ ] Plan VMware network mapping for the remaining department subnets.
+- [ ] Implement routing and any relay needed between representative subnets and DHCP.
+- [ ] Deploy Windows DHCP and matching data scopes/exclusions/options.
+- [ ] Verify a client lease, gateway, DNS, and scope selection on each implemented segment.
+- [ ] Record which Packet Tracer voice, guest, and Wi-Fi elements remain simulation-only.
 
-### 성공 판정
+Do not create 70 PCs to represent 70 directory users. Representative clients are sufficient for functional tests; they do not prove full-load performance.
 
-- [x] 최초 pilot OU만 포함해 검증. 이후 네 부서로 확장
-- [x] Entra에 실제 pilot 사용자 생성 확인
-- [x] AD 사용자와 해당 Entra 사용자의 동기화 관계·상태 확인
-- [x] Emma Title 변경 후 Entra 반영 확인
-- [x] Emma AD 비밀번호 변경 후 클라우드 로그인 검증
-- [ ] 오류 코드·시각·로그·사용자 식별 정보의 관계를 비공개 원본에 기록하고 공개용 증거는 정리
+## Gate D — M365 and endpoint management
 
-에이전트 Active/Healthy 또는 사용자 이름이 보인다는 사실만으로 전체 성공 처리하지 않는다.
-사용자 생성 성공과 로그인 성공을 구분한다.
+- [ ] Select a limited test cohort and verify current license availability before assignment.
+- [ ] Confirm cloud sign-in for representative employees; the other 69 were not individually tested.
+- [ ] Validate intended M365 service/mailbox behavior for licensed test users.
+- [ ] Preserve and document the old Entra-joined Intune device separately.
+- [ ] Choose the intended join/enrollment model for each new test device.
+- [ ] Validate Intune enrollment, policy application, and compliance for the selected device.
+- [ ] Verify group-based behavior explicitly; AD user sync does not grant licenses or local administrator rights.
 
-### 같은 오류가 반복될 때
+## Next-session sequence
 
-최초 추가 조사는 3h에서 멈추고 결과를 판단한다. 3h는 해결 보장이 아니다.
+1. Fix client installation and administrator access.
+2. Verify local domain/network connectivity.
+3. Run positive and negative file-access tests.
+4. Implement and test GPO/logon restrictions.
+5. Continue departmental network services and M365/Intune validation.
 
-1. 기존 시도와 현재 로그를 비교한다. 포털 on-demand 결과뿐 아니라 provisioning cycle·에이전트 로그를 함께 확인한다.
-2. 새 증거가 가리키는 가설 하나를 검증한다. 이유 없이 AD/테넌트 재구축을 반복하지 않는다.
-3. Cloud Sync에서 해결되지 않으면 요구 사항을 확인한 뒤 Connect Sync 비교 시험 범위·시간을 별도로 정한다.
-4. 같은 사용자가 두 동기화 도구의 범위에 동시에 포함되지 않도록 기존 구성부터 확인한다.
-5. 둘 다 실패하면 재현 절차·로그·오류 시각을 정리하고 지원 경로 또는 환경 분리 시험을 검토한다.
+Connect Sync remains the selected integration tool. Further Cloud Sync investigation is optional and must not interrupt the working identity path.
 
-| 결과 | 다음 단계 |
-|---|---|
-| 사용자 동기화·로그인 성공 | Step 4로 확장 |
-| 생성 성공·로그인 실패 | 인증 문제를 분리 조사. Hybrid는 부분 검증 |
-| 동기화 실패 | 미해결로 기록. Step 4의 독립 AD 작업은 가능하나 Step 6 Hybrid 검증은 대기 |
+## Evidence and documentation rules
 
-수동으로 양쪽에 같은 이름 계정을 생성하는 것은 동기화의 대체가 아니다.
-
-## Step 4 — 부서·70명·운영 정책 확장
-
-- [ ] HR / Engineering / Sales-Marketing / IT OU·그룹 구성
-- [ ] 직원 CSV의 부서별 8 / 35 / 22 / 5명과 총원 대조
-- [ ] 기존 계정 재사용/이동/신규 생성 명단 구분
-- [ ] 기존 스크립트 검토 후 경로·명명·그룹 처리를 수정
-- [ ] 입력 검증·중복 확인·WhatIf·로그를 필요한 수준으로 보완
-- [ ] 소수 시험 → 전체 실행 → 재실행 중복 및 결과 확인
-- [ ] 실행 시간·생성/이동/건너뜀/실패 건수 실측
-- [ ] 기존 GPO 백업·대상/필터 확인 후 새 OU에 연결
-- [ ] 대표 클라이언트에서 gpresult와 실제 기능 확인
-- [ ] HR PC에 HR 계정 허용 / Sales-Marketing 계정 거부 테스트
-- [ ] 로그인 제한은 회원 PC 대상 정책으로 검증. 관리자 복구 접근 경로를 유지
-- [ ] 로컬 로그인과 RDP 제한은 별도 범위로 기록
-- [ ] HR 공유 폴더의 HR 허용 / Sales-Marketing 거부를 별도 검증
-- [ ] Joiner: 계정 → OU/그룹 → 로그인 → 파일 접근
-- [ ] Mover: 부서·그룹 변경 → 이전 권한 제거 → 새 권한 확인
-- [ ] Leaver: 비활성화·그룹 정리·데이터 보관 → 새 인증/접근 차단 확인
-- [ ] 캐시 로그인·기존 세션과 새 인증 결과를 구분
-- [ ] 검증 후에만 기존 OU·그룹의 남은 의존성을 확인하고 정리
-
-일반 AD 계정의 부서는 IP를 결정하지 않는다. PC의 연결 네트워크가 주소를 결정한다.
-pilot 검증 후 사용자 지시에 따라 네 부서와 Entra-Pilot만 동기화 범위에 포함했다. 70명 동기화 확인 완료 보고를 받았으며 그룹·권한 검증은 별도로 진행한다.
-
-## Step 5 — VMware IP·DHCP·DNS 맞추기
-
-- [ ] host/LAN/VPN과 PT 주소 대역 중복 확인
-- [ ] VMnet별 서브넷·라우터·gateway·relay·외부 통신 경로 확정
-- [ ] 회사 Data와 Server 세그먼트를 재현할 범위 결정
-- [ ] DC/DNS/DHCP의 192.168.1.2 서비스 대응 계획 검토 후 단계적으로 적용
-- [ ] gateway 192.168.1.1은 VMware에 실제 라우터가 있을 때만 사용
-- [ ] Windows DHCP scope를 PT 최종 임대 범위에 맞춤
-- [ ] VMware DHCP와 이중 응답 방지, 고정 주소와 임대 영역 분리
-- [ ] 다른 부서 세그먼트에서 중앙 DHCP를 쓸 경우 relay 구성·검증
-- [ ] 클라이언트 DNS를 AD DNS로 설정. 외부 해석은 forwarder로 처리
-- [ ] 대표 클라이언트의 IP/mask/gateway/DNS·임대·이름 해석 확인
-- [ ] 도메인 로그인·GPO·파일 접근 재검증
-- [ ] provisioning agent/connector 상태·pilot 속성 변경 반영·클라우드 로그인 재검증
-
-PT의 External-Web 주소는 테스트용이므로 실제 인터넷 경로로 복사하지 않는다.
-VMware에서 구현하지 않은 Voice/Guest/Wi-Fi 구간은 PT 검증과 구분한다.
-
-완료 조건: 구현한 VM 세그먼트마다 PT 기준 대응표와 실제 결과가 있다.
-전 부서 네트워크를 구현하지 않았다면 대표 부서만 검증했다고 명시한다.
-
-## Step 6 — AD 직원 기준 M365·Intune 연결
-
-기존 cloud-only 직원 10명 매칭 계획은 사용자 결정으로 폐기했다.
-새 AD 직원 70명을 동기화하고 Junui 관리자·Sales 계정은 유지했다.
-
-- [x] 기존 cloud-only 직원 10명 삭제, 유지 대상 3개 확인 보고
-- [x] 직원 UPN을 테넌트 suffix로 통일 후 전체 동기화
-- [x] Entra 72개 사용자 객체 확인 및 직원 70명 필터 검증 완료 보고
-- [x] 예약 동기화 활성화 완료 보고
-- [ ] 나머지 직원의 첫 로그인 비밀번호 정책과 실제 로그인 검증 범위 결정
-- [ ] 일부 pilot 직원에게 필요한 M365 라이선스와 usage location 설정
-- [ ] 메일박스·부서 그룹·기존 Sales 공유 사서함 권한 재구성 및 검증
-- [ ] 동기화된 계정과 테스트 장치로 Intune 등록/사용 흐름 검증
-- [ ] 앱 배포·compliance·BitLocker 결과 확인
-- [ ] CA는 비상 관리자 제외·테스트 그룹 범위 확인 후 평가/차단/복구를 각각 기록
-- [ ] compliance 정책 조건·유예·체크인·새 로그인 평가와 대기 시간 고려
-- [ ] Leaver: 로그인 차단·세션 회수 → 메일/데이터 보관 → 라이선스 회수 → 검증
-
-기존 10명의 메일·그룹·장치 연결이 새 직원에게 자동 이전되었다고 주장하지 않는다.
-AD 사용자 동기화, Windows 장치 join, Intune 등록은 별개의 검증이다.
-
-## 문서·증거 관리
-
-- 통합 저장소: 회사 기준, 전체 계획, 연결 관계와 상태.
-- homelab: 실제 AD 스크립트·CSV·구축 방법·장애 기록·증거.
-- M365 저장소: 동기화·새 직원 계정 기반 메일·Intune·CA 결과.
-- Network 저장소: 기존 PT 구현과 증거 유지. 이번 작업을 위해 변경하지 않음.
-- AD 문서는 README / HowTo / ProblemSolving으로 분리하고 기존 링크와 증거를 보존.
-- 각 Step 종료 시 결과 링크·상태·실제 시간·다음 작업을 갱신.
-- 공개 전 비밀 정보·깨진 링크·검증되지 않은 완료 표현을 확인.
-
-## 최종 완료 기준
-
-- [ ] PT 기준의 부서·70명·주소 설계 대응 확정
-- [ ] AD 직원 계정·그룹·GPO·로그인 제한·파일 권한 검증
-- [ ] VMware에서 실제 구현한 IP/DHCP/DNS 범위 검증
-- [x] AD pilot → Entra 실제 동기화 및 로그인 검증
-- [x] 기존 Entra 계정 처리 결정 반영: 테스트 직원 10명 삭제, 관리자·Sales 유지
-- [ ] 동기화된 계정으로 M365·Intune 관리 흐름 검증
-- [ ] PT와 VMware의 설계 대응 및 실제 Hybrid 연동을 구분해 문서화
-
-동기화가 실패해도 독립 AD 작업은 계속할 수 있다. 다만 실제 Hybrid 통합 완료 조건은 충족하지 않은 것으로 남긴다.
-
-## 구현 전 확인할 공식 자료
-
-- [Cloud Sync troubleshooting](https://learn.microsoft.com/en-us/entra/identity/hybrid/cloud-sync/how-to-troubleshoot)
-- [Synchronization tools](https://learn.microsoft.com/en-us/entra/identity/hybrid/sync-tools)
-- [Existing tenant matching](https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/how-to-connect-install-existing-tenant)
-- [Cloud Sync supported topologies](https://learn.microsoft.com/en-us/entra/identity/hybrid/cloud-sync/plan-cloud-sync-topologies)
+- Write documentation and code comments in English.
+- Label work as verified, owner-reported, configured but untested, or planned.
+- Preserve the fixed Network Infrastructure baseline and the original Homelab history.
+- Record test user, source client, expected result, actual result, and evidence.
+- Never publish passwords, tokens, private keys, or unreviewed diagnostic archives.
+- Keep unresolved causes explicit; do not turn a successful workaround into a claimed root-cause fix.

@@ -1,50 +1,73 @@
 # IT Infrastructure Portfolio
 
-Network, On-prem Active Directory, M365 랩을 같은 70명 회사의 설계와 직원 관리 흐름으로 연결하는 프로젝트.
+A 70-employee company lab covering network design, on-premises identity, hybrid identity, and departmental file services.
 
-현재 상태: **Connect Sync로 AD 직원 70명 동기화. Emma 1명의 클라우드 로그인·속성 변경 검증 완료.**
-부서 그룹·GPO·파일 권한 및 새 계정 기반 M365·Intune 검증은 다음 작업이다. 상세 증거 범위는 진행 기록에서 구분한다.
-기존 개별 랩의 결과는 각 저장소에서 확인한다.
+**Current result:** 70 AD employee accounts synchronized to Microsoft Entra ID using Connect Sync. One pilot user's cloud sign-in and AD-to-Entra job-title update were verified. Four department shares have configured SMB and NTFS permissions; client access testing is pending.
 
-## 문서
+## Documentation
 
-- **[2026-10-30 진행 기록](progress-2026-10-30.md)** — 네트워크·DNS 정리, Cloud Sync 조사, Connect Sync 70명 확장 및 검증 한계
+- [How-to Guide](HowTo.md) — network setup, AD users, Connect Sync, groups, shares, verification, and shutdown.
+- [Problems and Resolutions](ProblemSolving.md) — DNS failure, unresolved Cloud Sync timeout, pilot password issue, and client preparation blocker.
+- [Company Specification](company-spec.md) — fixed Packet Tracer addressing and the implemented VMware environment.
+- [Integration Plan](integration-plan.md) — completed work, evidence limits, and remaining acceptance checks.
+- [2026-10-30 Session Record](progress-2026-10-30.md) — today's changes and the exact restart point.
+- [AD Resources](resources/AD/readme.md) — employee CSV and existing scripts.
+- [Network References](resources/Network/readme.md) — original design sources.
 
-- **[통합 작업 계획](integration-plan.md)** — 합의한 6단계 작업, 체크리스트, 완료 조건, provisioning 실패 시 대책
-- **[회사·네트워크 기준](company-spec.md)** — Packet Tracer의 실제 부서 인원, VLAN, IP, DHCP, DNS 기준
+All repository documentation and code comments are written in English.
 
-## 기존 프로젝트
+## Project layers
 
-| Layer | 저장소 | 이번 통합에서의 역할 |
+| Layer | Project | Current integration status |
 |---|---|---|
-| Network | [Network Infrastructure Lab](https://github.com/junuiui/network-infrastructure-lab) | 변경하지 않는 회사 네트워크 기준 |
-| On-prem identity | [AD Homelab](https://github.com/junuiui/homelab) | 기존 Homelab 보존, 별도 jh.test AD에 70명 구성. 권한·정책은 다음 단계 |
-| Cloud identity / endpoint | [M365, Entra & Intune Lab](https://github.com/junuiui/m365-entra-intune-lab) | Connect Sync 계정 동기화 완료. 클라우드 앱·장치 검증은 예정 |
+| Network | [Network Infrastructure Lab](https://github.com/junuiui/network-infrastructure-lab) | Fixed design reference; Packet Tracer is unchanged |
+| On-premises identity | [Original AD Homelab](https://github.com/junuiui/homelab) and the separate jh.test lab | Original lab preserved; jh.test contains the new workforce and department shares |
+| Cloud identity / endpoint | [M365, Entra & Intune Lab](https://github.com/junuiui/m365-entra-intune-lab) | Employee synchronization verified with Connect Sync; new-workforce M365/Intune tests remain |
 
-## 진행 순서
+## Company workforce
 
-| 순서 | 작업 | 상태 |
-|---|---|---|
-| 1 | PT 기준 부서·70명·주소 설계 | 부서·인원·서버망 주소 반영 |
-| 2 | jh.test AD 사용자·pilot·DNS 준비 | 70명 생성·DNS 수정. 그룹은 예정 |
-| 3 | Entra 동기화·로그인 검증 | Connect Sync 성공: Emma 로그인·속성 반영 / Cloud Sync 미해결 |
-| 4 | 직원 70명 확장 및 부서 운영 정책 | 전체 계정 동기화 완료 보고 / 그룹·GPO·권한 예정 |
-| 5 | VMware IP·DHCP·DNS | 서버망·라우터·DNS 검증 / 부서별 DHCP·relay 미검증 |
-| 6 | AD 직원 기준으로 M365·Intune 검증 | 기존 cloud-only 직원 10명 삭제. 새 직원 기반 검증 예정 |
+| Department | Employees |
+|---|---:|
+| HR | 8 |
+| Engineering | 35 |
+| Sales-Marketing | 22 |
+| IT | 5 |
+| **Total** | **70** |
 
-직원 기준: **HR 8 / Engineering 35 / Sales-Marketing 22 / IT 5 = 70**.
-원래 회사 설계의 HR/Finance를 현재 Network의 HR 표기에 대응시킨다.
+HR maps to the original Network lab's HR/Finance organization. The lab uses representative devices, not 70 client VMs or a 70-client load test.
 
-## 연결 범위
+## Verified and pending results
 
-- Packet Tracer ↔ VMware: 같은 부서·주소·서비스 설계를 사용하는 별도 구현. 직접 통신하는 환경이라고 표현하지 않는다.
-- On-prem AD → Entra/M365: 실제 사용자 동기화와 로그인을 확인해야 완료.
-- Entra/M365 → Intune: 동기화된 pilot 계정과 테스트 장치로 관리 흐름을 별도 검증.
-- 70명은 직원 계정 수다. 대표 장비와 소수의 테스트 VM으로 기능을 검증한다.
-- 사용자 결정으로 기존 cloud-only 직원 10명을 삭제하고 AD 70명으로 통일했다. 관리자와 Sales 계정은 유지했다.
-- 현재 72개 활성 사용자 객체: 직원 70명 + 관리자 1명 + Sales 1개. 70명 전체의 로그인·라이선스 할당을 검증한 것은 아니다.
+| Area | Result |
+|---|---|
+| Entra directory | Screenshot shows 72 active user objects: 70 employees, one administrator, and the retained Sales object |
+| Synchronization status | Pilot on-premises attributes shown; owner reported the 70-user synced filter and export checks passed |
+| Pilot sign-in | Owner reported successful cloud authentication after resetting Emma's AD password |
+| Attribute update | Screenshot shows Emma's job title changed to HR Coordinator |
+| Scheduled sync | Owner reported enabling the Connect Sync scheduler |
+| File services | Supplied output confirms four shares, explicit SMB/NTFS ACLs, and Access-Based Enumeration |
+| Employee share access | **Not yet tested** from a client |
+| GPO / workstation logon restrictions | **Pending** in the integration AD |
+| Department DHCP / relay | **Pending** in VMware |
+| Cloud Sync | **Unresolved** WebSocket timeout; disabled in favor of Connect Sync |
+| M365 / Intune | New-workforce licensing, mailbox, enrollment, and policy validation remain |
 
-## 작업 기록 원칙
+![Entra directory showing 72 active user objects](resources/photos/01-72-users-sync.png)
 
-완료된 결과만 검증됨으로 표시한다. 계획·부분 검증·미해결은 별도로 남긴다.
-구축 절차·스크립트·증거는 각 원래 저장소에서 관리하고 이 저장소는 공통 기준과 연결 관계를 관리한다.
+![Emma's updated job title in Entra](resources/photos/00-emma-wilson-job-title-changed.png)
+
+The first image supports directory population, not successful sign-in for every employee. The second supports a pilot attribute update, not endpoint compliance.
+
+## Integration boundaries
+
+- **Packet Tracer and VMware share a design.** They do not form one physically connected lab.
+- **AD and Entra are actually synchronized** using Connect Sync.
+- **User sync, Windows domain/Entra join, and Intune enrollment are separate operations.**
+- Existing cloud-only test employees were deleted by the owner; their data and device relationships were not migrated to the new employees.
+- Cloud Sync and Connect Sync must not process the same users concurrently.
+
+## Next session
+
+Prepare a Windows 11 Pro/Enterprise client with a known local administrator, connect it to the isolated lab, join jh.test, and test HR share access as Emma plus denied access to other departments. Preserve the existing Entra-joined Intune VM.
+
+The new win-lab client attempt is incomplete: the owner reported an incorrect image and plans to reinstall. Its join state and edition have not been verified.
