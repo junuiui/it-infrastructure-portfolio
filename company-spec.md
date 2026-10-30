@@ -21,9 +21,9 @@
 | IT | IT | IT | 5 |
 | 합계 | | | 70 |
 
-HR은 원래 HR/Finance 8명 조직의 네트워크 표기를 따른다. Finance를 별도 다섯 번째 부서로 추가하지 않는다. 기존 M365 Finance/Operations 사용자의 배치는 사용자별로 결정하고 기록한다.
+HR은 원래 HR/Finance 8명 조직의 네트워크 표기를 따른다. Finance를 별도 다섯 번째 부서로 추가하지 않는다. 기존 cloud-only 직원 10명은 삭제하고 AD 직원 70명으로 통일했다. 기존 관리자와 Sales 계정은 유지한다.
 
-70명은 직원 계정 수다. 부서별 대표 PC·전화기·프린터와 소수의 VMware 클라이언트로 기능을 검증한다. 70대 동시 접속이나 부하 검증은 범위에 포함하지 않는다. AD에 기존 Entra 10명에 대응하는 직원을 포함할 경우 이들은 70명 안에 포함하며 80명으로 늘리지 않는다. 별도 진단 계정·관리자·서비스 계정은 직원 수와 분리한다.
+70명은 직원 계정 수다. 부서별 대표 PC·전화기·프린터와 소수의 VMware 클라이언트로 기능을 검증한다. 70대 동시 접속이나 부하 검증은 범위에 포함하지 않는다. 직원은 AD 기준 70명이며, 관리자 1명과 Sales 계정 객체 1개를 포함한 Entra 활성 사용자 수는 72개로 확인했다. 별도 진단 계정·관리자·서비스 계정은 직원 수와 분리한다.
 
 ## 최종 VLAN·서브넷·게이트웨이
 
@@ -84,9 +84,9 @@ Windows AD DNS에는 도메인 검색·인증용 레코드가 필요하다. PT�
 
 ## VMware 구현 범위와 사전 결정
 
-- 기존 On-prem AD를 재사용한다. 부서 변경만을 이유로 forest를 재구축하지 않는다.
-- AD 도메인 현재 값, 서버명, UPN suffix, 테넌트 검증 도메인, VMnet 구성은 Step 1에서 실제 환경을 확인해 기록한다. 확인되지 않은 값을 확정하지 않는다.
-- 계정 명명 초안: firstname.lastname, 중복 시 숫자 접미. 기존 계정과 충돌을 확인한 뒤 확정한다.
+- 기존 Homelab AD는 보존하고, 별도 실험용으로 구성했던 jh.test AD를 통합 환경으로 사용한다.
+- AD domain: jh.test. DC: WIN-9TRC5DR3JHV. 직원 UPN suffix: junuihonglab.onmicrosoft.com.
+- 계정 명명: 소문자 firstnamelastname, 구분자·prefix 없음. 동명 충돌은 별도 확인 후 처리한다.
 - 장치 명명 초안: HR-PC-01 / ENG-PC-01 / SM-PC-01 / IT-PC-01.
 - 부서별 네트워크를 재현하려면 분리된 가상 세그먼트, 각 gateway, 라우팅과 DHCP relay 경로를 구성해야 한다.
 - VMnet 번호는 현재 VMware 구성을 조사한 뒤 정한다. VMnet 분리를 802.1Q VLAN 구현으로 표현하지 않는다.
@@ -100,3 +100,15 @@ Windows AD DNS에는 도메인 검색·인증용 레코드가 필요하다. PT�
 PT ↔ VMware는 공통 설계 대응이다. 두 환경이 실제 연결되어 있다고 주장하지 않는다.
 AD → Entra는 실제 동기화와 로그인을 확인해야 완료다.
 Entra/M365 → Intune은 동기화된 pilot 계정과 테스트 장치로 별도 확인해야 완료다.
+
+## 현재 구현 상태 — 2026-10-30
+
+- DC는 VMnet3 192.168.1.2/28, gateway 192.168.1.1, DNS 192.168.1.2.
+- Ubuntu router: ens34/VMnet3 192.168.1.1/28, ens33/VMnet8 10.0.0.10/24, 외부 gateway 10.0.0.2.
+- VMnet8 NAT망 10.0.0.0/24 유지. VMnet3의 host adapter와 VMware DHCP 비활성.
+- 실제 LAN 192.168.1.0/24와 주소가 겹쳐 별도 내부 세그먼트로 분리. Ubuntu forwarding·MASQUERADE 및 DC outbound TCP 443 확인.
+- AD DNS forwarders: 1.1.1.1 / 8.8.8.8. DNS test passed 보고.
+- Connect Sync로 직원 70명 동기화·예약 동기화 설정 완료 보고. Emma 1명 로그인·Title 변경 반영 검증.
+- Cloud Sync는 Disabled, 근본 원인 미해결. 기존 cloud-only 직원 10명은 매칭 대신 삭제했다.
+- DHCP 역할·부서별 scope·relay와 전체 부서 VM 네트워크는 아직 검증하지 않았다. 위 표의 목표를 전부 구현했다고 해석하지 않는다.
+- [상세 진행 기록과 증거 범위](progress-2026-10-30.md)
