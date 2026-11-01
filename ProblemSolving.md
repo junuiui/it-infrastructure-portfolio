@@ -124,7 +124,7 @@ Ava Collins (HR), Luke Fisher (ENG), Nora Green (SM), and Nolan Allen (IT) repor
 
 File names, a hidden share suffix, Access-Based Enumeration, or an ACL listing alone are not acceptance evidence. A missing network path and a wrong-password message are not successful authorization denials.
 
-Read DL groups were not separately tested. Department group membership does not depend on a user being in that department's OU: Emma initially remained in Entra-Pilot but received HR access through GG_HR_Users. Computer-side logon GPOs followed the computer OU.
+The HR Read tier was subsequently tested with Nolan: read allowed, shared-path write/create/delete denied; other department Read groups were not separately tested. Department group membership does not depend on a user being in that department's OU: Emma initially remained in Entra-Pilot but received HR access through GG_HR_Users. Computer-side logon GPOs followed the computer OU.
 
 ## 8. Placeholder interface names left in Netplan and DHCP Relay — resolved
 
@@ -176,6 +176,26 @@ This supports a reporting delay between Windows application and the profile's po
 PowerShell-only commands were entered in CMD together with copied C:\Users\LabAdmin> prompts/output. Those command errors were not network failures.
 
 Opened PowerShell and copied only the command body. Subsequent owner-reported SMB/HTTPS tests returned True.
+
+## 12. Read-only test required correct nested membership — corrected
+
+Nolan initially had the test Global group, but HR share access was denied. During troubleshooting, DL_HR_Share_Read was added directly to Nolan's Member Of list.
+
+Corrected the GUI workflow:
+- Remove the direct resource DL assignment from the user.
+- Open DL_HR_Share_Read Properties → Members.
+- Add the actual Global group GG-HR-ReadOnly_Test.
+- Renew Nolan's logon token through full sign-out/sign-in.
+
+Named-user screenshots then showed reading allowed and original-file save, create and delete denied. The screen must be the resource group's Members tab, not Nolan's Member Of tab. The final nested-member export was not supplied, so the evidence establishes effective permission outcomes.
+
+Removed temporary access and restored the computer to HR/Computers with Jamie by owner report.
+
+## 13. Inventory query had an extra closing parenthesis — corrected
+
+The first enabled/disabled LDAP filters closed the outer AND expression too early. Corrected filters are recorded in the How-to and AD resource index.
+
+Owner confirmed 71 employee objects, 70 enabled and one disabled. Query results do not automatically create a repository inventory export.
 
 ## References
 

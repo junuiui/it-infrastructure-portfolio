@@ -55,9 +55,9 @@ sudo iptables -t nat -S POSTROUTING
 
 Observed: UFW inactive and FORWARD policy ACCEPT. The NAT command does not replace a restrictive forwarding policy on another router.
 
-### Persistence — expanded-stack reboot verification pending
+### Persistence — expanded-stack reboot verification passed
 
-The owner confirmed an initial startup check of the original server/HR path. The final expanded router still needs an all-interface restart check. Persistence commands are:
+The expanded router was shut down and restarted. Evidence confirms all six interfaces, the single default route, forwarding, five NAT entries and Relay startup persisted. The commands used to save/inspect the dedicated router remain:
 
 ```bash
 sudo apt-get update
@@ -68,7 +68,7 @@ sysctl net.ipv4.ip_forward
 sudo iptables -t nat -S POSTROUTING
 ```
 
-After the next normal restart, recheck forwarding/rules and DC outbound connectivity. A working runtime connection does not prove persistence.
+Repeat the checks after future changes. The completed restart validation is recorded in section 16; runtime-only checks are not a substitute for it.
 
 ## 3. DC static addressing and DNS
 
@@ -154,9 +154,9 @@ $workforce.Count
 $workforce | Group-Object SamAccountName | Where-Object Count -gt 1
 ```
 
-This CSV-scoped check should still find the original 70 distinct accounts, including disabled Emma. It is not the complete live inventory after adding Jamie in section 11. Count enabled accounts separately. The original [health-check script](resources/AD/health-check.ps1) counts only department Users OUs; it excludes Emma after her pilot move.
+This CSV-scoped check should still find the original 70 distinct accounts, including disabled Emma. It is not the complete live inventory after adding Jamie in section 11. Section 17 contains the current 71/70/1 Saved Query validation. The original [health-check script](resources/AD/health-check.ps1) counts department Users OUs without enabled-state filtering. It excluded Emma while she was in Entra-Pilot; current evidence places her in HR/Users. Use the Saved Queries in section 17 for the validated live counts.
 
-Emma's last captured DN was CN=Emma Wilson,OU=Entra-Pilot,DC=jh,DC=test. She was later disabled for the leaver test; no final moved DN was supplied. Keep retained synced users within scope. Use Ava/Jamie for current HR access tests.
+Emma was initially in Entra-Pilot. New evidence shows her in HR/Users; she remains disabled for the leaver test. Retained users remain within sync scope. Use Ava/Jamie for current HR access tests.
 
 ## 5. Connect Sync
 
@@ -243,7 +243,7 @@ AGDLP: Account → Global Security Group → Domain Local Security Group → Per
 | Sales-Marketing | GG_SM_Users | 22 | DL_SM_Share_Modify | DL_SM_Share_Read |
 | IT | GG_IT_Users | 5 | DL_IT_Share_Modify | DL_IT_Share_Read |
 
-Place groups under the respective department OU. Add employees by Department, including Emma outside the HR OU. Nest each GG in its Modify DL. Keep Read DL groups empty until required.
+Place groups under the respective department OU. Add employees by Department, including Emma outside the HR OU. Nest each department GG in its Modify DL. HR Read was subsequently tested using the temporary GG-HR-ReadOnly_Test group, then cleaned up; see section 18.
 
 The owner progressed through setup; final direct membership output is not archived. Verify before client tests:
 
@@ -400,7 +400,7 @@ For the matching share, create a new text file, enter content, save, reopen, edi
 
 Network browsing can be empty because discovery is off, and dollar-suffixed shares are hidden. Use a direct UNC path. A 0KB pre-existing file is not evidence of successful content changes.
 
-Validated roles: Ava Collins/HR, Luke Fisher/ENG, Nora Green/SM, Nolan Allen/IT. Read-only groups remain an optional separate test.
+Validated roles: Ava Collins/HR, Luke Fisher/ENG, Nora Green/SM, Nolan Allen/IT. The HR Read tier was subsequently tested separately; see section 18.
 
 ## 10. Department networks, Windows DHCP, and Ubuntu Relay
 
@@ -608,13 +608,14 @@ The owner completed/restored this scenario, but the test identity was not record
 4. Run Delta sync and verify Entra Account enabled No.
 5. Test new private-browser cloud sign-in: blocked.
 
-Emma remains disabled. Optional completion beyond this demonstrated test:
-- Entra user → Revoke sessions; verify execution.
-- End existing Windows/SMB/app sessions through appropriate controls.
-- Review/remove group access and direct grants.
-- Decide mailbox/data retention and license handling before removal.
+Emma remains disabled. Later cleanup:
+- ADUC → Emma → Member Of → remove GG_HR_Users; retain Domain Users.
+- Microsoft 365 → Emma → Licenses and apps: confirmed Licenses (0), Sign-in blocked.
+- New OU evidence shows Emma in HR/Users.
+- Entra → Emma → Revoke sessions was instructed; explicit execution/audit confirmation remains pending.
+- Data retention/hand-over and existing Windows/SMB/app session handling are not inferred from disablement or an empty license list.
 
-Disabling does not instantly terminate every existing session. No full offboarding claim is made.
+Disabling does not instantly terminate every existing session. Full offboarding beyond the demonstrated account/access changes is not claimed.
 
 ## 12. Jamie's Microsoft 365 license and hybrid join
 
@@ -770,23 +771,14 @@ Portal → profile → Device and user check-in status:
 - Final captured result: Succeeded 1, Error 0, Conflict 0.
 - Initial all-zero report followed the real client change. Wait for check-in/report refresh rather than recreating a working profile.
 
-## 16. Final operations and remaining verification
+## 16. Restart validation and current operating checkpoint
 
-Current checkpoint:
-- HR-PC-01 in HR/Computers, VMnet4, DHCP.
-- Intune primary user Jamie.
-- MDM scope All / WIP None.
-- HR compliance pilot Compliant reported.
-- Login banner visible and portal success verified.
-- Emma retained disabled; Cloud Sync disabled.
-- Original CSV/scripts and original projects preserved.
-
-Shutdown client → Windows server → Ubuntu using normal guest shutdown:
+Completed shutdown sequence: client → DC → router. Completed startup: router → DC/services → client. Use normal guest shutdown, including:
 ```bash
 sudo shutdown -h now
 ```
 
-Start router → DC/services → client. Final expanded-stack verification remains pending:
+After Ubuntu startup:
 ```bash
 ip -br -4 addr
 ip -4 route
@@ -795,11 +787,113 @@ sudo iptables -t nat -S POSTROUTING
 sudo systemctl status isc-dhcp-relay --no-pager
 ```
 
-Then verify DC DNS, DHCP leases, ADSync scheduler, HR sign-in/share access, hybrid/PRT state, Intune check-in/compliance and banner.
+Captured results: six addressed UP NICs; default route via 10.0.0.2; forwarding 1; five retained source-subnet MASQUERADE rules; Relay enabled/active.
 
-Before declaring full operational closeout, export current employee objects/enabled states, group nesting, and licenses; verify leaver-session handling if included. Do not roll back AD/hybrid device snapshots casually as an operational recovery method.
+On the DC, inspect Services and DHCP scopes. The uploaded console shows all four scopes Active. A fresh full services/DC health/scheduler transcript was not supplied.
 
-App deployment, network ACLs, read-only access, HR BitLocker/LAPS and backup/restore are optional next projects.
+On HR-PC-01:
+```powershell
+ipconfig /all
+Resolve-DnsName "_ldap._tcp.dc._msdcs.jh.test" -Type SRV
+Test-NetConnection 192.168.1.2 -Port 445 -InformationLevel Quiet
+Test-NetConnection 1.1.1.1 -Port 443 -InformationLevel Quiet
+```
+
+Captured HR lease: 192.168.0.194, mask 255.255.255.224, gateway 192.168.0.193, DHCP/DNS 192.168.1.2. DNS and both connection tests passed.
+
+Check user tokens from Jamie's ordinary shell:
+```powershell
+whoami
+dsregcmd /status | Select-String 'AzureAdJoined|DomainJoined|DeviceAuthStatus|AzureAdPrt'
+```
+
+Final captured identity: jh\\jamiemorgan; both joins YES; device authentication SUCCESS; PRT YES. Check the actual user context before interpreting PRT.
+
+HR file access and Intune Info → Sync were reported healthy. The client was later restored again after the read-only test; final current state is HR/Computers, VMnet4, Jamie.
+
+Do not roll back AD/hybrid-device snapshots casually during routine operations.
+
+## 17. Employee inventory and license evidence
+
+ADUC → Saved Queries → New → Query → Define Query → Custom Search → Advanced. Search jh.test with subtree coverage.
+
+All department employees:
+```text
+(&(objectCategory=person)(objectClass=user)(|(department=HR)(department=Engineering)(department=Sales-Marketing)(department=IT)))
+```
+
+Enabled:
+```text
+(&(objectCategory=person)(objectClass=user)(|(department=HR)(department=Engineering)(department=Sales-Marketing)(department=IT))(!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+```
+
+Disabled:
+```text
+(&(objectCategory=person)(objectClass=user)(|(department=HR)(department=Engineering)(department=Sales-Marketing)(department=IT))(userAccountControl:1.2.840.113556.1.4.803:=2))
+```
+
+Completed counts: 71 / 70 / 1. Disabled result is Emma. In ADUC, add Department and User Logon Name columns and use Export List to preserve the inventory. A final exported file is not yet committed.
+
+These are AD Department-filtered people, not total Entra or baseline CSV counts.
+
+Microsoft 365 → Active users → Emma → Licenses and apps:
+- Sign-in blocked.
+- Licenses (0).
+- Business Premium showed 23 available out of 25 at capture time.
+
+Current license absence does not establish that no historical data exists.
+
+## 18. HR read-only test and cleanup
+
+**Completed acceptance:** Nolan read HR content; original-file save, create and delete were denied. Temporary access cleanup and client restoration were owner-reported.
+
+GUI setup:
+1. As Jamie, create a small nonempty HR share text file. Record the actual extension; the captured test file had a doubled .txt extension because of filename entry.
+2. ADUC → HR → New Group: actual name GG-HR-ReadOnly_Test, Global, Security.
+3. Open that Global group's Members tab and add Nolan Allen. Retain Nolan's GG_IT_Users and Domain Users.
+4. Open the **DL_HR_Share_Read group's Properties → Members** and add **GG-HR-ReadOnly_Test**, not Nolan directly. This is the group Members tab, not the user's Member Of tab.
+5. Move the computer object temporarily to IT/Computers, keep the client NIC on HR VMnet4, apply policy as local LabAdmin, then sign out fully.
+6. Sign in as JH\\nolanallen and verify whoami.
+7. Access the HR share and run the matrix.
+
+```text
+Nolan -> GG-HR-ReadOnly_Test -> DL_HR_Share_Read -> SMB Read / NTFS RX
+```
+
+| Operation | Expected and captured outcome |
+|---|---|
+| Open existing file and read contents | Allowed |
+| Edit and save back to the original shared path | Denied |
+| Create a new shared item | Denied |
+| Delete an existing shared file | Denied |
+
+A local Save As copy is not a failed read-only restriction. The original shared path must reject the write.
+
+Cleanup:
+1. DL_HR_Share_Read → Members: remove GG-HR-ReadOnly_Test.
+2. Test Global group → Members: remove Nolan; preserve the empty group if retaining the scenario.
+3. Sign out/in as Nolan and verify HR share access is revoked.
+4. Restore computer object to HR/Computers; VMnet4 remains.
+5. As LabAdmin run gpupdate /force; sign out and restore Jamie.
+
+Cleanup/restoration was reported successful; no final membership export was supplied. No SMB/NTFS ACL was broadened to make the test pass.
+
+## 19. Company Portal deployment — next action
+
+**Not yet verified.** Instructions were issued, but assignment, client installation and portal Installed status have not been confirmed.
+
+1. Intune → Apps → All apps → Company Portal. Reuse an existing Microsoft Store app (new) object if present.
+2. If absent: Create → Microsoft Store app (new) → search Company Portal, publisher Microsoft Corporation.
+3. App information: Install behavior System.
+4. Assignments → Required: add SG-Intune-Pilot-Devices, preserving any existing Sales assignments.
+5. Save/create. Keep Jamie signed in; run client Info → Sync and allow installation/check-in time.
+6. Do not install manually from Store while testing automatic delivery.
+7. Confirm Windows Start → Company Portal exists and launches; sign in as Jamie.
+8. Intune app → Device install status: HR-PC-01 Installed.
+
+Acceptance requires both real app availability/launch and Intune installation reporting. Creating the app object or assigning a group alone is not completion.
+
+After this, continue the approved ACL, BitLocker/LAPS, backup/restore and additional network stages in the integration plan.
 
 ## Official references
 
@@ -810,3 +904,4 @@ App deployment, network ACLs, read-only access, HR BitLocker/LAPS and backup/res
 - [Intune enrollment scope](https://learn.microsoft.com/en-us/intune/device-enrollment/windows/enable-automatic-mdm)
 - [Windows compliance settings](https://learn.microsoft.com/en-us/intune/device-security/compliance/ref-windows-settings)
 - [Settings catalog](https://learn.microsoft.com/en-us/intune/device-configuration/settings-catalog/)
+- [Company Portal app deployment](https://learn.microsoft.com/en-us/intune/app-management/deployment/add-company-portal-autopilot)

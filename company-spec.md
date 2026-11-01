@@ -33,7 +33,7 @@ The tables below distinguish the full design from the smaller VMware implementat
 - Same-name conflicts require review; the current script skips existing account-name/UPN conflicts rather than resolving them.
 - Keep administrator, service, and resource objects separate from the 70-person employee count.
 
-Existing cloud-only test employees were removed. The October 30 screenshot of 72 active directory objects is historical: 70 employees plus administrator and Sales objects. On October 31, Jamie Morgan was added in HR and Emma Wilson was retained but disabled. Expected employee account objects are now 71; enabled employees would remain 70 if no other accounts changed. A fresh final AD/Entra export has not been captured. Neither directory-object count nor employee count is a licensed-mailbox count.
+Existing cloud-only test employees were removed. The October 30 screenshot of 72 active directory objects is historical: 70 employees plus administrator and Sales objects. On October 31, Jamie Morgan was added in HR and Emma Wilson was retained but disabled. ADUC Saved Queries subsequently confirmed 71 employee objects, 70 enabled and one disabled (Emma). A final total Entra export has not been captured. Neither directory-object count nor employee count is a licensed-mailbox count.
 
 The CSV remains the original 70-person baseline (HR 8 / ENG 35 / SM 22 / IT 5). Jamie is outside that CSV, so scripts/inventory checks must account for the additional user and disabled status.
 
@@ -111,7 +111,7 @@ AD requires its own domain and DC locator records. Copying a Packet Tracer web A
 | DNS forwarders | 1.1.1.1 and 8.8.8.8 |
 | Router forwarding / NAT | IPv4 forwarding and ens33 MASQUERADE for 192.168.1.0/28 |
 
-The host adapter is disabled on VMnet3 to avoid adding an overlapping lab interface to the host. Outbound traffic passes through Ubuntu NAT and then VMnet8 NAT. The original router setup passed an owner-reported startup check. Persistence after the full department expansion still needs final verification.
+The host adapter is disabled on VMnet3 to avoid adding an overlapping lab interface to the host. Outbound traffic passes through Ubuntu NAT and then VMnet8 NAT. The expanded router subsequently passed the restart check: six interfaces, one default route, forwarding 1, five NAT rules and enabled/active DHCP Relay were captured.
 
 ## Implemented department networks
 
@@ -142,19 +142,19 @@ These VMnets have host virtual adapters and VMware DHCP disabled. The Ubuntu rou
 | SM | Nora Green | Department network, GPO, file access and tested cross-department denial passed |
 | IT | Nolan Allen | Department network, GPO, file access and tested cross-department denial passed |
 
-The same PC was used sequentially. Exact lease values and simultaneous client operation were not captured.
+The same PC was used sequentially. The HR post-restart lease is captured as 192.168.0.194/27; exact ENG/SM/IT leases and simultaneous client operation were not captured.
 
 ## Identity and file-service design
 
 - Current sync tool: Microsoft Entra Connect Sync with Password Hash Synchronization.
 - Cloud Sync configuration remains disabled; its timeout is unresolved.
 - Sync scope: HR, Engineering, Sales-Marketing, IT, and Entra-Pilot, including selected employee OUs and HR/Computers for hybrid device synchronization.
-- Emma is retained but disabled in both AD and Entra. Entra-Pilot was her last captured OU; a later move was discussed but not verified.
+- Emma is retained but disabled in both AD and Entra. The new ADUC evidence shows her in HR/Users. GG_HR_Users was removed; Domain Users remains. Current M365 licenses: zero.
 - Jamie Morgan is an additional HR/Users joiner, Title HR Assistant, with HR group access, a Business Premium license, cloud sign-in, and Outlook web access.
 - Department Global Security Groups: GG_HR_Users, GG_ENG_Users, GG_SM_Users, GG_IT_Users.
 - Resource Domain Local Security Groups: DL_CODE_Share_Modify and DL_CODE_Share_Read.
 - Intended membership: Accounts → department Global group → resource Domain Local group → permission.
-- Read groups are intended to remain empty until a read-only requirement is tested. Membership counts/nesting were not supplied as final captured output.
+- HR Read was tested temporarily using Nolan and GG-HR-ReadOnly_Test. Read was allowed; original-file save, create and delete were denied. Temporary membership cleanup was owner-reported; final nested-membership counts were not exported.
 - Department shares are hosted on the DC for this lab.
 
 | Share | Path | NTFS Modify / SMB Change | NTFS Read & Execute / SMB Read |
@@ -164,7 +164,7 @@ The same PC was used sequentially. Exact lease values and simultaneous client op
 | SM$ | C:\LabShares\SM | DL_SM_Share_Modify | DL_SM_Share_Read |
 | IT$ | C:\LabShares\IT | DL_IT_Share_Modify | DL_IT_Share_Read |
 
-SYSTEM and Administrators retain NTFS Full Control. Administrators have SMB Full access. All four shares show AccessBased enumeration. Department employees tested own-share file operations and cross-department denials. Read-only groups were not separately tested.
+SYSTEM and Administrators retain NTFS Full Control. Administrators have SMB Full access. All four shares show AccessBased enumeration. Department employees tested own-share file operations and cross-department denials. The HR Read tier was subsequently tested with Nolan; other department Read groups were not separately tested.
 
 ## Scope limits
 
@@ -193,4 +193,14 @@ Primary user: Jamie Morgan. Final hybrid/device authentication and PRT were veri
 
 Department logon GPOs use computer OU placement. Group membership controls the allowed user population and file permissions. A user's OU or Department field alone does not grant access.
 
-No interdepartmental packet-filter ACL, read-only acceptance test, app deployment, BitLocker/LAPS validation for HR, or full cold-start recovery test is claimed.
+No interdepartmental packet-filter ACL, verified app deployment, HR BitLocker/LAPS validation, or backup restore is claimed. Restart persistence and HR Read acceptance have now been verified.
+
+## Later validation checkpoint
+
+- HR-PC-01 lease: 192.168.0.194/27, gateway 192.168.0.193, DHCP/DNS 192.168.1.2.
+- Jamie post-restart identity: DomainJoined YES, AzureAdJoined YES, DeviceAuthStatus SUCCESS, AzureAdPrt YES.
+- HR share and Intune Sync were reported healthy after restart and subsequent computer-OU restoration.
+- Inventory: 71 employee objects / 70 enabled / one disabled.
+- Microsoft 365 license view: Emma unlicensed; Business Premium showed 23 available out of 25 at capture time.
+- Current client placement after read-only testing: HR/Computers, VMnet4; Jamie restored by owner report.
+- Next action: Company Portal via Microsoft Store app (new), Required to SG-Intune-Pilot-Devices. Configuration/installation result remains pending.

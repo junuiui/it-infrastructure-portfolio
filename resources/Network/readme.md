@@ -29,6 +29,16 @@ Ava Collins, Luke Fisher, Nora Green, and Nolan Allen tested the corresponding d
 - SMB/logon authorization denials do not prove packet-filter isolation. Department ACLs are not implemented.
 - Voice, guest, Wi-Fi, printers and web/CME services remain design/simulation only.
 - The Packet Tracer 10.0.0.0/30 transit is distinct from VMnet8's 10.0.0.0/24 NAT network.
-- Final persistence verification after the complete router expansion remains pending.
+- Expanded-router restart verification passed: six addressed NICs, one default route, forwarding 1, five source-subnet NAT rules and active/enabled DHCP Relay.
+- Post-restart HR client lease captured as 192.168.0.194/27, gateway 192.168.0.193, DHCP/DNS 192.168.1.2; SRV discovery and SMB/HTTPS connectivity passed.
 
 See the main guide for exact Netplan, Relay, DHCP GUI and test procedures. No network source files are changed in the original project.
+
+## Restart evidence
+
+- [Interfaces and routing](../photos/11-network1.png)
+- [Forwarding, retained NAT and automatic Relay startup](../photos/12-network2.png)
+- [Four active DHCP scopes](../photos/14-AD-DHCP-scope.png)
+- [HR DHCP lease and AD DNS discovery](../photos/15-jh_test-HRPC01-ipconfig.png)
+
+Only the HR exact post-restart client lease was captured. The earlier ENG/SM/IT sequential tests remain owner-reported; these images do not establish a fresh client lease on each subnet after restart.
