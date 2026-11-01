@@ -1,5 +1,7 @@
 # Company Specification
 
+**Current state: October 31, 2026.** The tables retain the original 70-person design and distinguish implemented data networks from simulation-only services.
+
 [README](README.md) · [How-to Guide](HowTo.md) · [Integration Plan](integration-plan.md)
 
 ## Authority and implementation status
@@ -27,11 +29,13 @@ The tables below distinguish the full design from the smaller VMware implementat
 - Employee UPN: firstnamelastname@junuihonglab.onmicrosoft.com.
 - CSV: FirstName, LastName, Department, PositionName.
 - PositionName maps to the AD Title property.
-- Device naming target: HR-PC-01 / ENG-PC-01 / SM-PC-01 / IT-PC-01. These names are not all deployed.
+- Device naming target: HR-PC-01 / ENG-PC-01 / SM-PC-01 / IT-PC-01. Only HR-PC-01 is deployed for this integration. It was moved between department networks/OUs for sequential testing and is now back in HR.
 - Same-name conflicts require review; the current script skips existing account-name/UPN conflicts rather than resolving them.
 - Keep administrator, service, and resource objects separate from the 70-person employee count.
 
-Existing cloud-only test employees were removed. The current Entra directory has 72 active user objects: 70 synchronized employees, Junui administrator, and the retained Sales account object. This is not a count of licensed mailboxes.
+Existing cloud-only test employees were removed. The October 30 screenshot of 72 active directory objects is historical: 70 employees plus administrator and Sales objects. On October 31, Jamie Morgan was added in HR and Emma Wilson was retained but disabled. Expected employee account objects are now 71; enabled employees would remain 70 if no other accounts changed. A fresh final AD/Entra export has not been captured. Neither directory-object count nor employee count is a licensed-mailbox count.
+
+The CSV remains the original 70-person baseline (HR 8 / ENG 35 / SM 22 / IT 5). Jamie is outside that CSV, so scripts/inventory checks must account for the additional user and disabled status.
 
 ## Packet Tracer VLAN and gateway design
 
@@ -70,13 +74,14 @@ Existing cloud-only test employees were removed. The current Entra directory has
 - Voice DNS: 0.0.0.0; phone TFTP: 192.168.1.4.
 - serverPool is a Packet Tracer default-pool workaround, not a required Windows DHCP scope.
 - Pool capacity is not employee headcount.
-- Windows departmental scopes and relay have not yet been verified in VMware.
+- Four Windows data scopes and the Ubuntu DHCP Relay were implemented and tested with one representative client on October 31.
+- Voice, guest, Wi-Fi, printer, and web-server entries remain design/simulation references.
 
 ## Fixed addresses and service boundaries
 
 | Item | Packet Tracer address | VMware implementation |
 |---|---|---|
-| DHCP/DNS server | 192.168.1.2/28 | AD DC and DNS use this address; Windows DHCP deployment is pending |
+| DHCP/DNS server | 192.168.1.2/28 | AD DS, DNS, DHCP, and lab department file shares run on this Windows Server |
 | Web server | 192.168.1.3/28 | Not deployed as part of this session |
 | Voice/CME router | 192.168.1.4/28 | Packet Tracer only |
 | Server gateway | 192.168.1.1 | Ubuntu internal NIC |
@@ -106,16 +111,46 @@ AD requires its own domain and DC locator records. Copying a Packet Tracer web A
 | DNS forwarders | 1.1.1.1 and 8.8.8.8 |
 | Router forwarding / NAT | IPv4 forwarding and ens33 MASQUERADE for 192.168.1.0/28 |
 
-The host adapter is disabled on VMnet3 to avoid adding an overlapping lab interface to the host. Outbound traffic passes through Ubuntu NAT and then VMnet8 NAT. NAT persistence across a router restart still needs confirmation.
+The host adapter is disabled on VMnet3 to avoid adding an overlapping lab interface to the host. Outbound traffic passes through Ubuntu NAT and then VMnet8 NAT. The original router setup passed an owner-reported startup check. Persistence after the full department expansion still needs final verification.
 
-A proposed test client address is 192.168.1.10/28 on VMnet3, gateway 192.168.1.1, DNS 192.168.1.2. This is a representative server-segment client, not an implemented HR Data VLAN. Confirm address availability before assignment.
+## Implemented department networks
+
+| Network | VMnet | Ubuntu NIC | MAC suffix | Router address | DHCP pool |
+|---|---|---|---|---|---|
+| HR | 4 | ens38 | :8e | 192.168.0.193/27 | 192.168.0.194–219 |
+| ENG | 5 | ens39 | :98 | 192.168.0.1/26 | 192.168.0.2–59 |
+| SM | 6 | ens40 | :a2 | 192.168.1.65/26 | 192.168.1.66–125 |
+| IT | 7 | ens41 | :ac | 192.168.1.17/28 | 192.168.1.18–27 |
+
+These VMnets have host virtual adapters and VMware DHCP disabled. The Ubuntu router has six NICs in total, including WAN ens33 and server ens34. Interface names were confirmed against MAC addresses.
+
+- Single default route: via 10.0.0.2 on ens33.
+- IPv4 forwarding enabled.
+- MASQUERADE on ens33 for the server subnet and all four department data subnets.
+- DHCP server: 192.168.1.2; DNS: 192.168.1.2; suffix: jh.test.
+- Relay interfaces: ens38 ens34 ens39 ens40 ens41; WAN excluded.
+- Current client: HR-PC-01 on VMnet4, IPv4/DNS automatic.
+- 192.168.1.10/28 was the temporary server-segment client address used before departmental DHCP. It is not the final client configuration.
+- Windows GUI is preferred for DHCP, AD, GPO, and device administration; Ubuntu uses Netplan and terminal commands.
+
+### Test identities
+
+| Department role | Employee | Outcome |
+|---|---|---|
+| HR | Ava Collins | DHCP/connectivity and HR resource access; final return to HR confirmed |
+| ENG | Luke Fisher | Department network, GPO, file access and tested cross-department denial passed |
+| SM | Nora Green | Department network, GPO, file access and tested cross-department denial passed |
+| IT | Nolan Allen | Department network, GPO, file access and tested cross-department denial passed |
+
+The same PC was used sequentially. Exact lease values and simultaneous client operation were not captured.
 
 ## Identity and file-service design
 
 - Current sync tool: Microsoft Entra Connect Sync with Password Hash Synchronization.
 - Cloud Sync configuration remains disabled; its timeout is unresolved.
-- Sync scope: HR, Engineering, Sales-Marketing, IT, and Entra-Pilot, including the selected employee child OUs.
-- Emma remains in Entra-Pilot with Department = HR.
+- Sync scope: HR, Engineering, Sales-Marketing, IT, and Entra-Pilot, including selected employee OUs and HR/Computers for hybrid device synchronization.
+- Emma is retained but disabled in both AD and Entra. Entra-Pilot was her last captured OU; a later move was discussed but not verified.
+- Jamie Morgan is an additional HR/Users joiner, Title HR Assistant, with HR group access, a Business Premium license, cloud sign-in, and Outlook web access.
 - Department Global Security Groups: GG_HR_Users, GG_ENG_Users, GG_SM_Users, GG_IT_Users.
 - Resource Domain Local Security Groups: DL_CODE_Share_Modify and DL_CODE_Share_Read.
 - Intended membership: Accounts → department Global group → resource Domain Local group → permission.
@@ -129,10 +164,33 @@ A proposed test client address is 192.168.1.10/28 on VMnet3, gateway 192.168.1.1
 | SM$ | C:\LabShares\SM | DL_SM_Share_Modify | DL_SM_Share_Read |
 | IT$ | C:\LabShares\IT | DL_IT_Share_Modify | DL_IT_Share_Read |
 
-SYSTEM and Administrators retain NTFS Full Control. Administrators have SMB Full access. All four shares show AccessBased enumeration. Actual employee access and cross-department denial remain untested.
+SYSTEM and Administrators retain NTFS Full Control. Administrators have SMB Full access. All four shares show AccessBased enumeration. Department employees tested own-share file operations and cross-department denials. Read-only groups were not separately tested.
 
 ## Scope limits
 
 VMnet separation is not evidence of an 802.1Q trunk/VLAN implementation. Packet Tracer remains separate. User sync does not automatically join a Windows device or enroll it in Intune.
 
-The original Intune VM is Entra joined and not AD-domain joined. Preserve it. A new win-lab client installation needs correction before AD-domain join and GPO tests.
+The original Intune VM remains separate. The new HR-PC-01 is Windows 11 Pro, AD joined, Microsoft Entra hybrid joined, and Intune managed. User sync alone did not establish this state; SCP/device synchronization and an autoenrollment GPO were configured separately.
+
+## Workstation and cloud policy scope
+
+| Policy/group | Purpose / scope |
+|---|---|
+| GPO-HR-Workstation-Logon | HR/Computers; Administrators + GG_HR_Users allowed locally |
+| GPO-ENG-Workstation-Logon | Engineering/Computers; Administrators + GG_ENG_Users |
+| GPO-SM-Workstation-Logon | Sales-Marketing/Computers; Administrators + GG_SM_Users |
+| GPO-IT-Workstation-Logon | IT/Computers; Administrators + GG_IT_Users |
+| GPO-HR-Intune-AutoEnrollment | HR/Computers; Enabled, User Credential |
+| SG-Intune-Pilot-Users | Assigned security user group containing Jamie |
+| WIN-COMP-HR-Pilot | Windows compliance: Firewall, Antivirus, Real-time protection required; assigned to pilot users |
+| SG-Intune-Pilot-Devices | Assigned security device group containing HR-PC-01 |
+| IN-CONFIG-Pilot-LogonBanner | Settings catalog; title/text banner; assigned to pilot devices |
+| WIN-COMP-Sales-Bitlocker | Pre-existing Sales policy, preserved separately |
+
+Final MDM user scope is **All** by owner choice, WIP scope **None**. This enables automatic enrollment for eligible users, not immediate enrollment of every AD computer. The GPO is linked only to HR/Computers; other department PCs require an appropriate link and device/user prerequisites.
+
+Primary user: Jamie Morgan. Final hybrid/device authentication and PRT were verified. The HR compliance policy reported Compliant. The banner was visible on Windows and its final portal summary showed one successful device with zero errors/conflicts.
+
+Department logon GPOs use computer OU placement. Group membership controls the allowed user population and file permissions. A user's OU or Department field alone does not grant access.
+
+No interdepartmental packet-filter ACL, read-only acceptance test, app deployment, BitLocker/LAPS validation for HR, or full cold-start recovery test is claimed.

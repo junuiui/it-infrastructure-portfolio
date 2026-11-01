@@ -1,111 +1,108 @@
 # Integration Plan
 
-[README](README.md) · [Company Specification](company-spec.md) · [How-to Guide](HowTo.md)
+[README](README.md) · [How-to Guide](HowTo.md) · [Company Specification](company-spec.md) · [October 31 Record](progress-2026-10-31.md)
 
-## Objective
+## Objective and current result
 
-Connect the existing network design, on-premises AD work, and M365/Entra/Intune work into one company scenario. The original projects remain visible as foundations; this repository records the integration and its evidence.
+Integrate the original network, AD, and M365 labs using one company model. Preserve the Packet Tracer baseline and original projects while recording actual integration evidence here.
 
-The Packet Tracer design remains unchanged. VMware reproduces selected design elements, not a physical connection to the simulation.
+**Core functional integration completed on October 31, 2026.** Four department networks, identity/resource controls, lifecycle scenarios, cloud services, hybrid join, Intune enrollment, compliance, and one delivered configuration profile were tested. Final restart persistence and inventory reconciliation remain closeout tasks.
 
-## Status as of October 30, 2026
+## Original six-step roadmap
 
-| Original step | Current status | Remaining work |
+| Step | Result | Remaining boundary |
 |---|---|---|
-| 1. Confirm departments, 70-person allocation, and addressing | Complete as a specification | Implement remaining VMware department segments |
-| 2. Prepare AD pilot and validate AD/DNS | Complete for pilot preparation and DNS check | Retain broader DC health and post-reboot evidence |
-| 3. Verify Entra sync and pilot login first | Complete with Connect Sync | Cloud Sync cause remains unresolved; no requirement to restore it |
-| 4. Expand OUs, users, groups, GPO, logon limits, file permissions | Users/groups/shares configured | Client access, group membership evidence, GPO, and logon tests pending |
-| 5. Align VMware IP, DHCP, DNS and retest | Server segment/router/DNS complete | Router persistence, department subnets, DHCP scopes, relay and lease evidence |
-| 6. Reconcile existing cloud users and validate M365/Intune | Old test users removed and 70 employees synced | New-workforce licenses, mailbox/service and endpoint tests |
+| 1. Align departments, workforce, and addresses | Original 70-person specification adopted | Jamie/Emma lifecycle changes require a current inventory separate from the CSV |
+| 2. Prepare AD pilot and validate AD/DNS | AD users, pilot, DNS repair, and connectivity verified | Full fresh DC health transcript not captured |
+| 3. Test sync and login before expansion | Connect Sync, pilot login, and title update passed | Original Cloud Sync timeout unresolved; investigation optional |
+| 4. Expand identity, groups, GPO, and shares | Four department roles, console restrictions, resource operations, and JML tested | Read-only groups and exhaustive user/access matrix not tested |
+| 5. Implement network/DHCP/DNS | Four department data VMnets, routing, DHCP scopes, Relay and Internet tests passed | Final expanded-stack restart; network ACLs not implemented |
+| 6. Integrate cloud services/endpoints | Jamie licensed/Outlook tested; hybrid join, Intune, compliance, banner delivery passed | New-workforce app deployment and broader service tests optional |
 
-The work is not assigned an overall percentage: configuring an ACL, testing an employee's access, and validating endpoint management are different acceptance gates.
+## Acceptance record
 
-## Completed work
+### Network
 
-- [x] Preserve the original Homelab AD; use the separate jh.test domain for integration.
-- [x] Adopt fixed Packet Tracer addressing and department totals: 8 / 35 / 22 / 5.
-- [x] Create the 70-person CSV and AD employee accounts.
-- [x] Use lowercase firstnamelastname account names.
-- [x] Configure the tenant UPN suffix and align employee UPNs.
-- [x] Place Emma in Entra-Pilot and keep her HR department attribute.
-- [x] Implement the VMnet3 server segment and Ubuntu-to-VMnet8 outbound routing.
-- [x] Correct the DC's DNS configuration; owner reported the DNS test passed.
-- [x] Investigate Cloud Sync and retain its unresolved status.
-- [x] Use Connect Sync with Password Hash Synchronization for the pilot.
-- [x] Resolve Emma's temporary-password state and verify her cloud sign-in.
-- [x] Observe an AD job-title update in Entra.
-- [x] Remove the old cloud-only test employees while retaining administrator and Sales objects.
-- [x] Expand sync scope and observe the 72-user directory.
-- [x] Configure departmental GG/DL groups and four shares; verify supplied share/NTFS ACL output.
-- [x] Identify the client preparation blocker without disconnecting the existing Intune VM.
-- [x] Update the integration documentation in English.
+- [x] Preserve the Packet Tracer addressing baseline.
+- [x] Create server VMnet3 and upstream VMnet8 router path.
+- [x] Create HR/ENG/SM/IT data VMnets 4/5/6/7.
+- [x] Map Ubuntu interfaces by MAC and configure gateway addresses.
+- [x] Configure four Active Windows DHCP scopes with AD DNS.
+- [x] Relay DHCP to 192.168.1.2 and add outbound NAT.
+- [x] Test each department sequentially with the representative client.
+- [x] Return the client to HR/VMnet4 and confirm Ava sign-in.
+- [ ] Reboot the fully expanded stack and capture all-interface, NAT, forwarding and Relay persistence.
+- [ ] Archive exact final lease/export evidence; individual lease values were not supplied.
 
-Group setup is recorded from the owner's progression through the procedure. Final direct membership counts still need captured verification.
+### AD, workstation, and file access
 
-## Gate A — Functional on-premises client
+- [x] Create the baseline employees, department OUs, GG/DL resource groups and four shares.
+- [x] Retain a known local administrator on the new Windows 11 Pro client.
+- [x] Join HR-PC-01 to jh.test.
+- [x] Create four department computer OUs and scoped console-logon GPOs.
+- [x] Test own-department login/file operations and the instructed cross-department denials.
+- [x] Keep administrator console access available.
+- [ ] Capture final membership counts and nested group evidence after lifecycle changes.
+- [ ] Test Read DL groups if a read-only tier is included in the final project scope.
 
-- [ ] Reinstall win-lab with verified Windows 11 Pro/Enterprise media.
-- [ ] Establish a known local administrator and verify it before identity changes.
-- [ ] Verify edition and dsregcmd state.
-- [ ] Place the representative client on VMnet3 with correct gateway and AD DNS.
-- [ ] Join jh.test and verify domain membership.
-- [ ] Verify GG user counts and GG-to-DL nesting, including Emma in HR.
-- [ ] Confirm Emma can create, read, edit, and delete in HR$.
-- [ ] Confirm Emma is denied ENG$, SM$, and IT$.
-- [ ] Test the empty read groups with a designated temporary test assignment if needed, then remove that assignment.
-- [ ] Retain screenshots or transcripts showing the test identity and outcome.
+### Employee lifecycle
 
-Do not interpret a successful SMB test as proof of workstation logon restriction.
+- [x] Joiner Jamie: AD creation, HR group/resource access, Entra sync and cloud sign-in.
+- [x] Mover: Engineering-to-HR attribute/OU/group change, access transition and restoration reported.
+- [x] Leaver Emma: disabled AD login, disabled Entra state and blocked new cloud sign-in.
+- [ ] Confirm whether Revoke sessions was executed.
+- [ ] Define/complete leaver group cleanup, license/data handover, and existing-session handling if claiming full offboarding.
+- [ ] Capture current inventory: baseline 70 + Jamie, retained disabled Emma, enabled and nonemployee counts separately.
 
-## Gate B — GPO and lifecycle
+A disabled account is not proof that all existing sessions, permissions, licenses, or retained data were handled.
 
-- [ ] Create appropriate client computer OUs and place the client correctly.
-- [ ] Build scoped client GPOs; keep ordinary employee restrictions off the DC.
-- [ ] Test same-department logon and cross-department denial with representative workstation/user pairs.
-- [ ] Record gpresult /r or equivalent resultant policy evidence.
-- [ ] Joiner: create a designated test user, apply groups, and verify expected resource/cloud access.
-- [ ] Mover: change a designated user's department and remove old access before confirming new access.
-- [ ] Leaver: disable a designated test user and validate the resulting access/sign-in controls.
-- [ ] Keep synchronization scope stable during OU moves; scope removal can delete the cloud object.
+### Hybrid identity and Microsoft 365
 
-## Gate C — Network implementation
+- [x] Verify Connect Sync user flow and AD-to-Entra job-title update.
+- [x] Preserve Cloud Sync failure evidence and disable that engine for overlapping scope.
+- [x] Verify ADSync Running and object scheduler enabled at the session start.
+- [x] Include the client computer OU in device sync scope and configure hybrid join/SCP.
+- [x] Verify DomainJoined YES, AzureAdJoined YES, DeviceAuthStatus SUCCESS and Jamie PRT YES.
+- [x] Assign Jamie Business Premium and verify Outlook web access.
+- [ ] Capture a final tenant inventory/license snapshot and current scheduled-sync state.
 
-- [ ] Confirm IPv4 forwarding and NAT survive a router reboot.
-- [ ] Retest DC DNS and outbound HTTPS after startup.
-- [ ] Plan VMware network mapping for the remaining department subnets.
-- [ ] Implement routing and any relay needed between representative subnets and DHCP.
-- [ ] Deploy Windows DHCP and matching data scopes/exclusions/options.
-- [ ] Verify a client lease, gateway, DNS, and scope selection on each implemented segment.
-- [ ] Record which Packet Tracer voice, guest, and Wi-Fi elements remain simulation-only.
+### Intune
 
-Do not create 70 PCs to represent 70 directory users. Representative clients are sufficient for functional tests; they do not prove full-load performance.
+- [x] Verify Intune service/license, active tenant and MDM authority.
+- [x] Configure automatic MDM enrollment using User Credential.
+- [x] Retain final MDM scope All intentionally; WIP None.
+- [x] Confirm Intune portal device and Jamie primary user.
+- [x] Assign WIN-COMP-HR-Pilot and receive owner-reported Compliant result.
+- [x] Deliver IN-CONFIG-Pilot-LogonBanner to the device pilot group.
+- [x] Verify real Windows banner and final portal Succeeded 1 / Error 0 / Conflict 0.
+- [ ] Capture final per-setting compliance report; the old default-policy 65001 row was not separately shown as cleared.
 
-## Gate D — M365 and endpoint management
+MDM scope All is not a license assignment, an autoenrollment GPO link, or a compliance-policy assignment. Each is controlled separately.
 
-- [ ] Select a limited test cohort and verify current license availability before assignment.
-- [ ] Confirm cloud sign-in for representative employees; the other 69 were not individually tested.
-- [ ] Validate intended M365 service/mailbox behavior for licensed test users.
-- [ ] Preserve and document the old Entra-joined Intune device separately.
-- [ ] Choose the intended join/enrollment model for each new test device.
-- [ ] Validate Intune enrollment, policy application, and compliance for the selected device.
-- [ ] Verify group-based behavior explicitly; AD user sync does not grant licenses or local administrator rights.
+## Closeout order
 
-## Next-session sequence
+1. Preserve evidence and update English docs/GUI How-to — this update.
+2. Perform a clean shutdown/startup test without rolling back joined-device snapshots.
+3. Verify all router interfaces, scopes/Relay, DC DNS, scheduled sync, HR sign-in, file access, Intune check-in and banner.
+4. Export current inventory and memberships; record enabled versus retained disabled employee objects.
+5. Decide whether to finish Emma's offboarding beyond the demonstrated disable/sync/block test.
 
-1. Fix client installation and administrator access.
-2. Verify local domain/network connectivity.
-3. Run positive and negative file-access tests.
-4. Implement and test GPO/logon restrictions.
-5. Continue departmental network services and M365/Intune validation.
+No percentage is assigned: acceptance results and limits are more useful than a blended completion number.
 
-Connect Sync remains the selected integration tool. Further Cloud Sync investigation is optional and must not interrupt the working identity path.
+## Optional extensions
 
-## Evidence and documentation rules
+- Win32/Store app deployment to the pilot.
+- Interdepartmental network ACLs and representative reachability tests.
+- HR BitLocker, recovery-key escrow and LAPS validation.
+- Backup and restore validation.
+- Read-only access tests and a larger access matrix.
+- Voice, guest and Wi-Fi implementation beyond Packet Tracer.
+- Further Cloud Sync root-cause analysis.
 
-- Write documentation and code comments in English.
-- Label work as verified, owner-reported, configured but untested, or planned.
-- Preserve the fixed Network Infrastructure baseline and the original Homelab history.
-- Record test user, source client, expected result, actual result, and evidence.
-- Never publish passwords, tokens, private keys, or unreviewed diagnostic archives.
-- Keep unresolved causes explicit; do not turn a successful workaround into a claimed root-cause fix.
+These are separate extensions, not uncompleted claims hidden inside the core integration.
+
+## Reporting rules
+
+Documentation and comments remain English. Distinguish screenshots/output, owner-reported outcomes, inferred counts, and pending checks. Prefer GUI for Windows administration. Preserve baseline CSV/scripts and historical records.
+
+Do not claim direct Packet Tracer-to-VMware connectivity, 802.1Q implementation, network packet isolation from file-permission denials, all-user testing, or a proven cause for the Cloud Sync/initial MDM URL failures.

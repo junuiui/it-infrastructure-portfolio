@@ -1,73 +1,88 @@
 # IT Infrastructure Portfolio
 
-A 70-employee company lab covering network design, on-premises identity, hybrid identity, and departmental file services.
+A company lab connecting a fixed Packet Tracer network design with VMware networking, Active Directory, Microsoft Entra ID, Microsoft 365, and Intune.
 
-**Current result:** 70 AD employee accounts synchronized to Microsoft Entra ID using Connect Sync. One pilot user's cloud sign-in and AD-to-Entra job-title update were verified. Four department shares have configured SMB and NTFS permissions; client access testing is pending.
+I first worked on network infrastructure, AD administration, and Microsoft 365 as separate labs. This project brings those foundations into one company scenario and tests how addressing, identity, access, and device management work together.
+
+**Current result — October 31, 2026:** Four department data networks were tested using one representative Windows client. The lab also completed joiner, mover, and leaver scenarios, synchronized identities with Connect Sync, and enrolled the hybrid-joined client in Intune. Jamie's compliance policy reported Compliant, and the login-banner profile reported Succeeded for one device.
 
 ## Documentation
 
-- [How-to Guide](HowTo.md) — network setup, AD users, Connect Sync, groups, shares, verification, and shutdown.
-- [Problems and Resolutions](ProblemSolving.md) — DNS failure, unresolved Cloud Sync timeout, pilot password issue, and client preparation blocker.
-- [Company Specification](company-spec.md) — fixed Packet Tracer addressing and the implemented VMware environment.
-- [Integration Plan](integration-plan.md) — completed work, evidence limits, and remaining acceptance checks.
-- [2026-10-30 Session Record](progress-2026-10-30.md) — today's changes and the exact restart point.
-- [AD Resources](resources/AD/readme.md) — employee CSV and existing scripts.
-- [Network References](resources/Network/readme.md) — original design sources.
-
-All repository documentation and code comments are written in English.
-
-## Project layers
-
-| Layer | Project | Current integration status |
-|---|---|---|
-| Network | [Network Infrastructure Lab](https://github.com/junuiui/network-infrastructure-lab) | Fixed design reference; Packet Tracer is unchanged |
-| On-premises identity | [Original AD Homelab](https://github.com/junuiui/homelab) and the separate jh.test lab | Original lab preserved; jh.test contains the new workforce and department shares |
-| Cloud identity / endpoint | [M365, Entra & Intune Lab](https://github.com/junuiui/m365-entra-intune-lab) | Employee synchronization verified with Connect Sync; new-workforce M365/Intune tests remain |
-
-## Company workforce
-
-| Department | Employees |
-|---|---:|
-| HR | 8 |
-| Engineering | 35 |
-| Sales-Marketing | 22 |
-| IT | 5 |
-| **Total** | **70** |
-
-HR maps to the original Network lab's HR/Finance organization. The lab uses representative devices, not 70 client VMs or a 70-client load test.
-
-## Verified and pending results
-
-| Area | Result |
+| Document | Purpose |
 |---|---|
-| Entra directory | Screenshot shows 72 active user objects: 70 employees, one administrator, and the retained Sales object |
-| Synchronization status | Pilot on-premises attributes shown; owner reported the 70-user synced filter and export checks passed |
-| Pilot sign-in | Owner reported successful cloud authentication after resetting Emma's AD password |
-| Attribute update | Screenshot shows Emma's job title changed to HR Coordinator |
-| Scheduled sync | Owner reported enabling the Connect Sync scheduler |
-| File services | Supplied output confirms four shares, explicit SMB/NTFS ACLs, and Access-Based Enumeration |
-| Employee share access | **Not yet tested** from a client |
-| GPO / workstation logon restrictions | **Pending** in the integration AD |
-| Department DHCP / relay | **Pending** in VMware |
-| Cloud Sync | **Unresolved** WebSocket timeout; disabled in favor of Connect Sync |
-| M365 / Intune | New-workforce licensing, mailbox, enrollment, and policy validation remain |
+| [How-to Guide](HowTo.md) | Repeatable setup and verification, with GUI steps for Windows administration |
+| [Company Specification](company-spec.md) | Addressing, NIC mapping, workforce baseline, identity, and policy scope |
+| [Integration Plan](integration-plan.md) | Acceptance results and remaining validation |
+| [Problems and Resolutions](ProblemSolving.md) | Evidence, failed approaches, recovery, and unresolved causes |
+| [October 31 Session Record](progress-2026-10-31.md) | Department networks, lifecycle tests, M365, hybrid join, and Intune |
+| [October 30 Session Record](progress-2026-10-30.md) | Historical setup and Connect Sync rollout |
+| [Evidence Index](resources/photos/readme.md) | Screenshots and the limits of each |
+| [AD Resources](resources/AD/readme.md) | Baseline CSV and original scripts |
+| [Network Resources](resources/Network/readme.md) | Fixed network source and implemented mappings |
 
-![Entra directory showing 72 active user objects](resources/photos/01-72-users-sync.png)
+Documentation and code comments are maintained in English. Windows configuration steps use the GUI where practical; terminal commands cover Ubuntu configuration and focused verification.
 
-![Emma's updated job title in Entra](resources/photos/00-emma-wilson-job-title-changed.png)
+## Project foundations
 
-The first image supports directory population, not successful sign-in for every employee. The second supports a pilot attribute update, not endpoint compliance.
+| Foundation | Repository | Relationship to this integration |
+|---|---|---|
+| Network design | [Network Infrastructure Lab](https://github.com/junuiui/network-infrastructure-lab) | Fixed addressing/reference; original Packet Tracer files unchanged |
+| AD administration | [Active Directory Homelab](https://github.com/junuiui/homelab) | Original environment preserved; integration uses the separate jh.test AD |
+| Cloud administration | [M365, Entra & Intune Lab](https://github.com/junuiui/m365-entra-intune-lab) | Earlier cloud-only work retained; new workforce and hybrid client verified here |
 
-## Integration boundaries
+## What was verified
 
-- **Packet Tracer and VMware share a design.** They do not form one physically connected lab.
-- **AD and Entra are actually synchronized** using Connect Sync.
-- **User sync, Windows domain/Entra join, and Intune enrollment are separate operations.**
-- Existing cloud-only test employees were deleted by the owner; their data and device relationships were not migrated to the new employees.
-- Cloud Sync and Connect Sync must not process the same users concurrently.
+| Area | Result | Evidence |
+|---|---|---|
+| Four department networks | DHCP, AD DNS, SMB, Internet connectivity, department GPOs, and share tests reported passed | Four active scopes captured; named test matrix in the session record |
+| Department authorization | Own-share file operations allowed; tested cross-department shares denied | Access-denied screenshots and owner-reported test results |
+| Workstation logon | Department GPOs applied as the representative PC moved between OUs | Logon-denied screenshot; department test reports |
+| Joiner | Jamie created in AD, given HR access, synchronized, and signed in to the cloud | Owner report; later Jamie/Intune screenshots |
+| Mover | Engineering-to-HR access change tested and restored | Owner report; test account name not captured |
+| Leaver | Emma disabled in AD and Entra; new local and cloud sign-ins blocked | AD disabled-account screenshot and owner report |
+| Microsoft 365 | Jamie assigned Business Premium and opened Outlook web | Owner report |
+| Hybrid join | DomainJoined YES, AzureAdJoined YES, device authentication SUCCESS, PRT YES | Supplied diagnostic output |
+| Intune enrollment | HR-PC-01 managed by Intune; primary user Jamie Morgan | Portal and successful client-sync screenshots |
+| Compliance | WIN-COMP-HR-Pilot reported Compliant | Owner report after policy assignment |
+| Configuration delivery | Login banner appeared and profile reported Succeeded: 1, Error/Conflict: 0 | Client and portal screenshots below |
 
-## Next session
+![Intune-delivered login banner on the client](resources/photos/09-intune-logon-banner.png)
 
-Prepare a Windows 11 Pro/Enterprise client with a known local administrator, connect it to the isolated lab, join jh.test, and test HR share access as Emma plus denied access to other departments. Preserve the existing Entra-joined Intune VM.
+![Intune profile reports one successful device](resources/photos/10-intune-logon-banner-report.png)
 
-The new win-lab client attempt is incomplete: the owner reported an incorrect image and plans to reinstall. Its join state and edition have not been verified.
+Actual profile name: IN-CONFIG-Pilot-LogonBanner. It differs from the originally suggested WIN-CONFIG name; the documentation uses the deployed name.
+
+## Baseline and current identities
+
+The baseline CSV contains 70 synthetic employees: HR 8, Engineering 35, Sales-Marketing 22, IT 5.
+
+Jamie Morgan was added separately as the joiner. Emma Wilson remains retained but disabled as the leaver. That produces 71 employee account objects and an expected 70 enabled employee accounts if no other accounts changed. The original CSV remains a baseline, not a current inventory export.
+
+The October 30 screenshot of 72 directory objects is historical. A fresh final directory count was not supplied after Jamie's addition.
+
+## Final operating state
+
+- Windows client: HR-PC-01, Windows 11 Pro, HR/Computers OU, VMnet4, DHCP.
+- Device join: AD domain joined and Microsoft Entra hybrid joined.
+- Intune primary user: Jamie Morgan.
+- MDM user scope: All, intentionally retained by the owner; WIP scope: None.
+- Compliance pilot: SG-Intune-Pilot-Users, containing Jamie.
+- Configuration pilot: SG-Intune-Pilot-Devices, containing HR-PC-01.
+- Automatic Intune enrollment GPO: linked to HR/Computers.
+- Emma: disabled; session revocation, group cleanup, and data handover are not verified.
+- Cloud Sync: disabled; Connect Sync remains the working synchronization engine.
+
+## Boundaries and remaining work
+
+Packet Tracer and VMware share a company design; they are not physically connected. Separate VMnets represent department networks without claiming an implemented 802.1Q trunk. Voice, guest, Wi-Fi, printers, and the simulated web server remain Packet Tracer/design-only.
+
+One client was moved between networks and computer OUs. This verifies sequential functional behavior, not simultaneous multi-client operation or 70-client capacity. Network ACL isolation between departments has not been implemented; share/logon denials are identity controls.
+
+Remaining closeout:
+- Reboot and verify all expanded router interfaces, forwarding, NAT, and DHCP Relay persistence together.
+- Capture a final AD/Entra inventory, enabled counts, memberships, and license snapshot.
+- Decide whether to finish Emma's session/group/data cleanup.
+- Validate read-only resource groups if that access tier is needed.
+- Optionally add app deployment, network ACLs, BitLocker/LAPS, or backup/restore tests.
+
+The original Cloud Sync timeout and the initial missing-MDM-URL cause remain unresolved. Successful recovery is documented without claiming a proven root cause.

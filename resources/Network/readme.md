@@ -1,13 +1,34 @@
-# Network References
+# Network Resources
 
-[Company Specification](../../company-spec.md) · [How-to Guide](../../HowTo.md)
+[Company Specification](../../company-spec.md) · [How-to Guide](../../HowTo.md) · [October 31 Record](../../progress-2026-10-31.md)
 
-The original [Network Infrastructure Lab](https://github.com/junuiui/network-infrastructure-lab) is the fixed design authority. Its Packet Tracer files are unchanged.
+The [Network Infrastructure Lab](https://github.com/junuiui/network-infrastructure-lab) remains the fixed Packet Tracer design authority. Its files and IP plan are unchanged.
 
-- [Network configuration guide](https://github.com/junuiui/network-infrastructure-lab/blob/main/HowTo.md)
-- [Historical architecture/headcount reference](https://github.com/junuiui/network-infrastructure-lab/blob/69d8c1a8993dfd07d1f167922214b5a84aa0ceb9/docs/architecture.md)
-- [Integrated addressing and implementation status](../../company-spec.md)
+- [Original network configuration guide](https://github.com/junuiui/network-infrastructure-lab/blob/main/HowTo.md)
+- [Historical architecture/headcount plan](https://github.com/junuiui/network-infrastructure-lab/blob/69d8c1a8993dfd07d1f167922214b5a84aa0ceb9/docs/architecture.md)
 
-Currently implemented in VMware: isolated server subnet, Ubuntu outbound router, DC static address, and AD DNS. Departmental client subnets, Windows DHCP scopes, and relay still require implementation/verification.
+## Implemented VMware mapping
 
-Packet Tracer and VMware use the same company design but are not physically connected. The Packet Tracer 10.0.0.0/30 transit is separate from VMnet8's 10.0.0.0/24 NAT network.
+| Purpose | VMnet | NIC | Router address |
+|---|---|---|---|
+| Upstream NAT | 8 | ens33 | 10.0.0.10/24, gateway 10.0.0.2 |
+| Server | 3 | ens34 | 192.168.1.1/28 |
+| HR Data | 4 | ens38 | 192.168.0.193/27 |
+| ENG Data | 5 | ens39 | 192.168.0.1/26 |
+| SM Data | 6 | ens40 | 192.168.1.65/26 |
+| IT Data | 7 | ens41 | 192.168.1.17/28 |
+
+All internal networks have VMware DHCP/host adapters disabled. Windows DHCP and AD DNS are on 192.168.1.2. Ubuntu DHCP Relay listens on ens34 and the four department NICs, excluding ens33. NAT sends Internet-bound traffic through ens33.
+
+Ava Collins, Luke Fisher, Nora Green, and Nolan Allen tested the corresponding department roles. One representative client was moved between VMnets and OUs; it is back on HR/VMnet4 with DHCP.
+
+## Boundaries
+
+- VMware routing works between separate virtual subnets; no 802.1Q trunk is claimed.
+- Packet Tracer and VMware are not directly connected.
+- SMB/logon authorization denials do not prove packet-filter isolation. Department ACLs are not implemented.
+- Voice, guest, Wi-Fi, printers and web/CME services remain design/simulation only.
+- The Packet Tracer 10.0.0.0/30 transit is distinct from VMnet8's 10.0.0.0/24 NAT network.
+- Final persistence verification after the complete router expansion remains pending.
+
+See the main guide for exact Netplan, Relay, DHCP GUI and test procedures. No network source files are changed in the original project.
