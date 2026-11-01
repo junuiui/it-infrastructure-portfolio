@@ -660,8 +660,6 @@ dsregcmd /status | Select-String 'AzureAdJoined|DomainJoined|DeviceAuthStatus|Az
 
 Expected: both join values YES, DeviceAuthStatus SUCCESS, AzureAdPrt YES. A Pending portal record alone is not completed hybrid join.
 
-The incident re-registration reset and error_missing_device investigation are documented in [Problems and Resolutions](ProblemSolving.md). Do not use repeated leave/rejoin as routine setup.
-
 ## 13. Intune automatic enrollment
 
 ### User eligibility and scope
@@ -701,41 +699,31 @@ gpupdate /force
 
 Sign out/in as Jamie. MFA interaction is conditional on authentication/policy; no prompt is not a failure.
 
-### Verification and useful diagnostics
+### Enrollment verification
 
-Task Scheduler as administrator:
+While signed in as Jamie, open Task Scheduler as administrator:
 ```text
 Microsoft/Windows/EnterpriseMgmt
   Schedule created by enrollment client for automatically enrolling in MDM from AAD
 ```
 
-Do not confuse this with the similarly named client-certificate reattestation task. Do not repeatedly trigger an already-running task.
+If a registration attempt is already running, allow it to finish before checking the result.
 
 Client Settings → Accounts → Access work or school → jh.test → Info:
 - Organizational management server.
 - Successful Sync result.
-- Intune portal device appears with primary user Jamie.
 
-For this build, current MDM events were in Enrollment, not Admin:
-```text
-Applications and Services Logs/Microsoft/Windows/
-DeviceManagement-Enterprise-Diagnostics-Provider/Enrollment
-```
+Intune → Devices → All devices → HR-PC-01:
+- Managed by Intune.
+- Primary user Jamie Morgan.
+- Recent check-in.
 
-Events 75/76 cover autoenrollment success/failure where emitted. Confirm channel/time and actual management state. Event 306 under User Device Registration is device-join success, not MDM success. Attestation success also does not prove enrollment.
-
-Read-only diagnosis:
+Verify the hybrid identity from Jamie's ordinary PowerShell:
 ```powershell
-Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\MDM" | Select-Object AutoEnrollMDM, UseAADCredentialType
-
-Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Control\CloudDomainJoin\TenantInfo" |
-    Get-ItemProperty |
-    Format-List PSChildName, MdmEnrollmentUrl, MdmTermsOfUseUrl, MdmComplianceUrl
+dsregcmd /status | Select-String 'AzureAdJoined|DomainJoined|DeviceAuthStatus|AzureAdPrt|Mdm'
 ```
 
-Expected policy values in this lab: 1 and 1. URL presence is discovery information, not management proof. No manual URL injection was used.
-
-If scope/URLs/credentials are correct but enrollment fails, preserve timestamped events before changing settings. The successful recovery sequence and its limits are recorded separately.
+Final device and user identity were verified alongside the actual client management state and portal inventory.
 
 ## 14. HR compliance pilot
 

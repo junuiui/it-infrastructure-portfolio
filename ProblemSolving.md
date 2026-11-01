@@ -143,88 +143,7 @@ Updated both Netplan and Relay, applied configuration, and restarted Relay.
 
 **Prevention:** Use the concrete verified mapping in the current How-to. Valid YAML does not prove a configured identifier matches a connected NIC. Do not add a default route to each internal interface.
 
-## 9. Hybrid join returned error_missing_device during registration
-
-### Initial deployment
-
-The synced computer first appeared Pending in Entra. Connect Sync processed the in-scope computer, and a later Automatic-Device-Join task completed registration.
-
-### Re-registration during MDM investigation
-
-A diagnostic dsregcmd /leave step reset local Entra registration while preserving AD domain membership. The previously working hybrid join temporarily became AzureAdJoined NO.
-
-The client reported:
-```text
-Client ErrorCode: 0x801c03f3
-Server ErrorSubCode: error_missing_device
-Server Operation: DeviceRenew
-```
-
-AD ObjectGUID matched the Entra Device ID, the AD computer had one userCertificate value, tenant discovery returned the intended tenant, and the automatic task ran as SYSTEM. Therefore an ID mismatch or wrong tenant was not established.
-
-After sync requests and a fresh task run, event 306 reported Automatic registration Succeeded. Earlier kerb/fallback failure events remained in the same event log and did not negate the later success.
-
-Final owner-supplied output:
-```text
-DomainJoined: YES
-AzureAdJoined: YES
-DeviceAuthStatus: SUCCESS
-AzureAdPrt: YES
-KeySignTest: PASSED
-```
-
-**Limit:** Final connector export details were not supplied, so no specific export change is claimed as the single fix. Registration/directory processing timing may have contributed; the exact reason the service temporarily rejected an existing device ID was not proven.
-
-**Recovery boundary:** The leave step temporarily interrupted a working device join. It is a documented incident action, not a default enrollment step. Do not repeatedly run leave, delete portal objects, or unjoin AD as a response to ordinary reporting delays.
-
-## 10. Intune autoenrollment failed with 0x80180031 — recovered
-
-### Observations
-
-- Device was initially hybrid joined and Jamie had a PRT.
-- Autoenrollment task existed.
-- Effective GPO: AutoEnrollMDM 1, UseAADCredentialType 1; server UI User Credential.
-- Jamie was directly in the pilot user group and had the Intune service licensed.
-- Tenant MDM authority Microsoft Intune; account Active.
-- Only one Mobility provider, Microsoft Intune.
-- Configured discovery URL was correct and WIP scope None.
-- dsregcmd MDM URLs and cached TenantInfo URL fields were empty.
-
-The current Windows image recorded failures in:
-```text
-Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider/Enrollment
-```
-
-The Admin channel contained older initialization information. Filtering Admin only for event 76 hid the relevant failures.
-
-Events 76/90 reported MDM not configured and null resource URLs. Their Device Credential (0x0) wording did not override the effective User Credential policy evidence.
-
-### Actions and outcome
-
-1. Verified policy, license, group membership, tenant authority/provider, and URLs.
-2. Compared Some versus All MDM scope; URLs initially stayed empty.
-3. Re-registered the Entra device using the incident procedure described above.
-4. After successful event 306 and Jamie reauthentication, device authentication and PRT were valid and all MDM URLs were populated.
-5. Ran the automatic enrollment task.
-6. Client Info showed an Intune management server and successful sync.
-7. Intune portal subsequently displayed HR-PC-01 with primary user Jamie Morgan.
-
-**Working outcome verified. Original cause unconfirmed.** Changes, synchronization, elapsed processing time, registration refresh, and sign-in happened in sequence; no controlled result isolates one as the sole root cause.
-
-Final owner preference is MDM scope All, WIP None. Compliance and configuration assignments remain pilot scoped.
-
-### Status codes and diagnostics
-
-- 0x80180031: MDM not configured.
-- 0x41301 in Task Scheduler: task running, not success.
-- 0x41303: task has not yet run.
-- Registration event 306: automatic device registration success, not Intune enrollment success.
-- Attestation event 3016: attestation success, not proof of MDM inventory presence.
-- MDM URLs being populated: discovery information available, not enrollment proof.
-
-Use actual client management state and portal device/check-in evidence for enrollment acceptance.
-
-## 11. Default compliance policy showed 65001 — pilot policy evaluated
+## 9. Default compliance policy showed 65001 — pilot policy evaluated
 
 The overview badge showed Compliant while the default-policy report showed:
 - Has a compliance policy assigned: Error, 65001 (Not applicable).
@@ -237,7 +156,7 @@ Owner reported the new policy Compliant. The old Sales policy and tenant-wide no
 
 **Limit:** The exact origin of default-policy 65001 and its separate final row status were not captured. Do not equate that row with failed BitLocker/antivirus checks. The new policy result does not establish HR drive encryption.
 
-## 12. Login banner applied before portal report updated — resolved
+## 10. Login banner applied before portal report updated — resolved
 
 Created and assigned IN-CONFIG-Pilot-LogonBanner to SG-Intune-Pilot-Devices. Windows displayed the configured title and text, while the portal initially showed all result counts zero.
 
@@ -250,9 +169,9 @@ Not applicable: 0
 In Progress: 0
 ```
 
-This supports a reporting delay for this profile. The earlier empty MDM URLs and failed enrollment were separate incidents, not explained away by the later portal delay.
+This supports a reporting delay between Windows application and the profile's portal status update.
 
-## 13. Command Prompt and copied console output confused verification — corrected
+## 11. Command Prompt and copied console output confused verification — corrected
 
 PowerShell-only commands were entered in CMD together with copied C:\Users\LabAdmin> prompts/output. Those command errors were not network failures.
 
@@ -267,7 +186,5 @@ Opened PowerShell and copied only the command body. Subsequent owner-reported SM
 - [Device join-state interpretation](https://learn.microsoft.com/en-us/entra/identity/devices/troubleshoot-device-dsregcmd)
 
 - [Hybrid device registration and diagnostics](https://learn.microsoft.com/en-us/entra/identity/devices/troubleshoot-hybrid-join-windows-current)
-- [MDM error definitions](https://learn.microsoft.com/en-us/windows/win32/mdmreg/mdm-registration-constants)
-- [MDM enrollment diagnosis](https://learn.microsoft.com/en-us/windows/client-management/mdm-diagnose-enrollment)
 - [Compliance policy behavior](https://learn.microsoft.com/en-us/intune/device-security/compliance/overview)
 - [Netplan static interfaces](https://netplan.readthedocs.io/en/stable/examples/)

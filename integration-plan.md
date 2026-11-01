@@ -89,20 +89,20 @@ MDM scope All is not a license assignment, an autoenrollment GPO link, or a comp
 
 No percentage is assigned: acceptance results and limits are more useful than a blended completion number.
 
-## Optional extensions
+## Next implementation stages — approved for follow-up
 
-- Win32/Store app deployment to the pilot.
-- Interdepartmental network ACLs and representative reachability tests.
-- HR BitLocker, recovery-key escrow and LAPS validation.
-- Backup and restore validation.
-- Read-only access tests and a larger access matrix.
-- Voice, guest and Wi-Fi implementation beyond Packet Tracer.
-- Further Cloud Sync root-cause analysis.
+- [ ] Win32/Store app deployment to the pilot.
+- [ ] Interdepartmental network ACLs based on the fixed PT design, with representative reachability tests and administrator recovery.
+- [ ] HR BitLocker, recovery-key escrow and LAPS validation.
+- [ ] Backup and restore validation.
+- [ ] Read-only access tests and a larger access matrix.
+- [ ] Extend voice, guest and Wi-Fi implementation from the fixed PT design, with explicit acceptance checks and documented platform limitations.
+- Further Cloud Sync root-cause analysis remains optional.
 
-These are separate extensions, not uncompleted claims hidden inside the core integration.
+The owner requested completion of the remaining work after the core integration. Implement these stages sequentially and retain acceptance evidence. None is marked complete before testing. Further Cloud Sync investigation remains optional because Connect Sync already meets the identity objective.
 
 ## Reporting rules
 
 Documentation and comments remain English. Distinguish screenshots/output, owner-reported outcomes, inferred counts, and pending checks. Prefer GUI for Windows administration. Preserve baseline CSV/scripts and historical records.
 
-Do not claim direct Packet Tracer-to-VMware connectivity, 802.1Q implementation, network packet isolation from file-permission denials, all-user testing, or a proven cause for the Cloud Sync/initial MDM URL failures.
+Do not claim direct Packet Tracer-to-VMware connectivity, 802.1Q implementation, network packet isolation from file-permission denials, all-user testing, or a proven cause for the original Cloud Sync failure.

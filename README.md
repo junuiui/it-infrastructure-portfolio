@@ -83,6 +83,6 @@ Remaining closeout:
 - Capture a final AD/Entra inventory, enabled counts, memberships, and license snapshot.
 - Decide whether to finish Emma's session/group/data cleanup.
 - Validate read-only resource groups if that access tier is needed.
-- Optionally add app deployment, network ACLs, BitLocker/LAPS, or backup/restore tests.
+- Continue the requested extensions in stages: read-only access, app deployment, network ACLs, BitLocker/LAPS, and backup/restore testing.
 
-The original Cloud Sync timeout and the initial missing-MDM-URL cause remain unresolved. Successful recovery is documented without claiming a proven root cause.
+The original Cloud Sync timeout remains unresolved. Connect Sync is the working synchronization engine.
