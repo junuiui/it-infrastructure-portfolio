@@ -13,7 +13,7 @@ I first worked on network infrastructure, AD administration, and Microsoft 365 a
 
 ## Architecture
 
-```
+```text
 Packet Tracer design (fixed addressing and topology reference)
         |  same addressing design, not physically connected
         v
