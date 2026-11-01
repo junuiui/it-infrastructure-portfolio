@@ -878,9 +878,9 @@ Cleanup:
 
 Cleanup/restoration was reported successful; no final membership export was supplied. No SMB/NTFS ACL was broadened to make the test pass.
 
-## 19. Company Portal deployment — next action
+## 19. Company Portal deployment — verified
 
-**Not yet verified.** Instructions were issued, but assignment, client installation and portal Installed status have not been confirmed.
+**Completed.** Captured automatic installation notification, live Company Portal with organizational device access, and Intune Device install status Installed for HR-PC-01/Jamie.
 
 1. Intune → Apps → All apps → Company Portal. Reuse an existing Microsoft Store app (new) object if present.
 2. If absent: Create → Microsoft Store app (new) → search Company Portal, publisher Microsoft Corporation.
@@ -891,7 +891,9 @@ Cleanup/restoration was reported successful; no final membership export was supp
 7. Confirm Windows Start → Company Portal exists and launches; sign in as Jamie.
 8. Intune app → Device install status: HR-PC-01 Installed.
 
-Acceptance requires both real app availability/launch and Intune installation reporting. Creating the app object or assigning a group alone is not completion.
+Verified version: 11.2.2044.0. The app displayed JUNUI HONG LAB, HR-PC-01 and Can access company resources. Its empty Recently published apps list reflected no Available apps being offered to Jamie; it did not indicate a failed Company Portal deployment.
+
+Acceptance was confirmed through the client installation notification, live app and Intune Installed report. Creating an app object or assigning a group alone would not have met this check.
 
 After this, continue the approved ACL, BitLocker/LAPS, backup/restore and additional network stages in the integration plan.
 

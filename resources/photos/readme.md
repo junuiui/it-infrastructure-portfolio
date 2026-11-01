@@ -24,6 +24,10 @@ Screenshots are supplied by the lab owner. The table states what each image supp
 | [17 — Original save denied](17-readonly-save-denied.png) | Nolan cannot save changes to the original shared file | A local Save As copy is a different operation |
 | [18 — New item denied](18-readonly-create-denied.png) | Nolan cannot create an item in HR share | No packet isolation inference |
 | [19 — Delete denied](19-readonly-delete-denied.png) | Nolan cannot delete an existing HR file | File owner prompt does not grant that owner administrator rights |
+| [20 — Company Portal installed notification](20-company-portal-install-notification.png) | Intune software-distribution notification reports successful installation | Portal reporting verified separately |
+| [21 — Company Portal running](21-company-portal-running.png) | Organizational app session, HR-PC-01 and Can access company resources | Empty Available-app catalog does not indicate deployment failure |
+| [22 — Company Portal Installed report](22-company-portal-installed-report.png) | HR-PC-01/Jamie, Installed, version 11.2.2044.0 | Guest/portal timestamps are kept as captured |
+
 
 Numbering leaves space for additional evidence; no missing image file is referenced.
 
@@ -38,6 +42,5 @@ Numbering leaves space for additional evidence; no missing image file is referen
 - Inventory Saved Query counts confirmed by the owner: 71 employee objects / 70 enabled / one disabled. The exported inventory file is not committed.
 - Emma HR group removal and zero licenses are shown in chat screenshots, not committed here as separate images.
 - Final read-only membership cleanup/access revocation and HR client restoration are owner-reported; no final group export.
-- Company Portal assignment/install/launch/report remains unverified.
 
 No raw diagnostic archive, password, token, or private key is committed. Selected screenshots include normal lab tenant/device/user identifiers.

@@ -17,7 +17,7 @@ Integrate the original network, AD, and M365 labs using one company model. Prese
 | 3. Test sync and login before expansion | Connect Sync, pilot login, and title update passed | Original Cloud Sync timeout unresolved; investigation optional |
 | 4. Expand identity, groups, GPO, and shares | Four department roles, console restrictions, resource operations, and JML tested | HR Read tested; other Read groups and exhaustive access matrix remain |
 | 5. Implement network/DHCP/DNS | Four department data VMnets, routing, DHCP scopes, Relay and Internet tests passed | Router/HR restart checks passed; network ACLs not implemented |
-| 6. Integrate cloud services/endpoints | Jamie licensed/Outlook tested; hybrid join, Intune, compliance, banner delivery passed | New-workforce app deployment and broader service tests optional |
+| 6. Integrate cloud services/endpoints | Jamie licensed/Outlook tested; hybrid join, Intune, compliance, banner and Company Portal deployment passed | Wider service/app coverage can be added separately |
 
 ## Acceptance record
 
@@ -80,6 +80,7 @@ A disabled account is not proof that all existing sessions, permissions, license
 - [x] Assign WIN-COMP-HR-Pilot and receive owner-reported Compliant result.
 - [x] Deliver IN-CONFIG-Pilot-LogonBanner to the device pilot group.
 - [x] Verify real Windows banner and final portal Succeeded 1 / Error 0 / Conflict 0.
+- [x] Verify required app delivery with Company Portal installed/running and the Intune Installed report.
 - [ ] Capture final per-setting compliance report; the old default-policy 65001 row was not separately shown as cleared.
 
 MDM scope All is not a license assignment, an autoenrollment GPO link, or a compliance-policy assignment. Each is controlled separately.
@@ -96,7 +97,7 @@ No percentage is assigned: acceptance results and limits are more useful than a 
 
 ## Next implementation stages — approved for follow-up
 
-- [ ] Company Portal via Microsoft Store app (new), Required to SG-Intune-Pilot-Devices: instructions issued; assignment, installation, Jamie launch and Installed report not yet confirmed.
+- [x] Company Portal via Microsoft Store app (new), Required to SG-Intune-Pilot-Devices: installation notification, organizational app launch and Intune Installed report verified; version 11.2.2044.0.
 - [ ] Interdepartmental network ACLs based on the fixed PT design, with representative reachability tests and administrator recovery.
 - [ ] HR BitLocker, recovery-key escrow and LAPS validation.
 - [ ] Backup and restore validation.
@@ -106,6 +107,19 @@ No percentage is assigned: acceptance results and limits are more useful than a 
 - Further Cloud Sync root-cause analysis remains optional.
 
 The owner requested completion of the remaining work after the core integration. Implement these stages sequentially and retain acceptance evidence. None is marked complete before testing. Further Cloud Sync investigation remains optional because Connect Sync already meets the identity objective.
+
+## Next session and time estimate
+
+Resume with the fixed Packet Tracer ACL reference, a service-access matrix and a rollback plan. Follow with HR BitLocker/key escrow, LAPS, and an actual restore test.
+
+| Remaining stage | Planning estimate |
+|---|---|
+| ACL design, rules and allow/deny tests | 1.5–3 hours |
+| HR BitLocker/recovery-key and LAPS validation | 2–3 hours |
+| Backup and restore acceptance | 1.5–3 hours |
+| Final inventory/session/data checks and documentation | 0.5–1 hour |
+
+Primary closeout: approximately 5.5–10 hours, subject to dependencies. Guest/Wi-Fi/voice implementation is additional scope and is excluded from that estimate. An eight-hour session can make substantial progress, but completion is not guaranteed.
 
 ## Reporting rules
 

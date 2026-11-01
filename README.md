@@ -48,6 +48,7 @@ Documentation and code comments are maintained in English. Windows configuration
 | Intune enrollment | HR-PC-01 managed by Intune; primary user Jamie Morgan | Portal and successful client-sync screenshots |
 | Compliance | WIN-COMP-HR-Pilot reported Compliant | Owner report after policy assignment |
 | Configuration delivery | Login banner appeared and profile reported Succeeded: 1, Error/Conflict: 0 | Client and portal screenshots below |
+| App delivery | Company Portal installed automatically, launched in the organization context, and reported Installed for HR-PC-01/Jamie | Installation notification, live app, and Intune device-install report |
 
 ![Router interfaces and routes retained after restart](resources/photos/11-network1.png)
 
@@ -56,6 +57,8 @@ Documentation and code comments are maintained in English. Windows configuration
 ![Intune-delivered login banner on the client](resources/photos/09-intune-logon-banner.png)
 
 ![Intune profile reports one successful device](resources/photos/10-intune-logon-banner-report.png)
+
+![Company Portal reports Installed for HR-PC-01](resources/photos/22-company-portal-installed-report.png)
 
 Actual profile name: IN-CONFIG-Pilot-LogonBanner. It differs from the originally suggested WIN-CONFIG name; the documentation uses the deployed name.
 
@@ -86,7 +89,7 @@ Packet Tracer and VMware share a company design; they are not physically connect
 One client was moved between networks and computer OUs. This verifies sequential functional behavior, not simultaneous multi-client operation or 70-client capacity. Network ACL isolation between departments has not been implemented; share/logon denials are identity controls.
 
 Next checkpoint:
-- Company Portal deployment instructions have been provided; assignment, installation and Installed reporting are not yet confirmed.
+- Company Portal deployment is complete. Next session starts with the Packet Tracer ACL reference and a tested Ubuntu rule plan.
 - Preserve final query exports, group nesting and tenant/license inventory; AD employee counts are already confirmed.
 - Confirm Emma session revocation and any data-retention/hand-over requirements.
 - Continue network ACLs, BitLocker/LAPS, backup/restore, and the agreed additional network services.

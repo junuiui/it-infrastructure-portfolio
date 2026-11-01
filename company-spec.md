@@ -193,7 +193,7 @@ Primary user: Jamie Morgan. Final hybrid/device authentication and PRT were veri
 
 Department logon GPOs use computer OU placement. Group membership controls the allowed user population and file permissions. A user's OU or Department field alone does not grant access.
 
-No interdepartmental packet-filter ACL, verified app deployment, HR BitLocker/LAPS validation, or backup restore is claimed. Restart persistence and HR Read acceptance have now been verified.
+Company Portal app deployment, restart persistence and HR Read acceptance have been verified. Interdepartmental packet-filter ACLs, HR BitLocker/LAPS validation and backup restore remain.
 
 ## Later validation checkpoint
 
@@ -203,4 +203,5 @@ No interdepartmental packet-filter ACL, verified app deployment, HR BitLocker/LA
 - Inventory: 71 employee objects / 70 enabled / one disabled.
 - Microsoft 365 license view: Emma unlicensed; Business Premium showed 23 available out of 25 at capture time.
 - Current client placement after read-only testing: HR/Computers, VMnet4; Jamie restored by owner report.
-- Next action: Company Portal via Microsoft Store app (new), Required to SG-Intune-Pilot-Devices. Configuration/installation result remains pending.
+- Company Portal deployment: Microsoft Store app (new), System context, Required to SG-Intune-Pilot-Devices. Client success notification and live app were captured; Intune reports HR-PC-01 Installed, Jamie UPN, version 11.2.2044.0.
+- Company Portal displays HR-PC-01 and Can access company resources. No optional self-service apps were published to Jamie at capture time.
