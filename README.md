@@ -3,7 +3,8 @@
 A company lab connecting a fixed Packet Tracer network design with VMware networking, Active Directory, Microsoft Entra ID, Microsoft 365, and Intune.
 
 - **Built:** four department networks, a new AD domain (`jh.test`) with 70 baseline employees, Microsoft Entra Connect Sync, and an Intune-managed hybrid-joined client, all from one company specification.
-- **Verified:** joiner, mover, and leaver scenarios; department share and GPO access; hybrid join; Intune compliance, configuration profile, and app delivery.
+- **Verified:** department share and GPO access; hybrid join; Intune compliance, configuration profile, and app delivery.
+- **Lifecycle tests:** joiner (complete), mover (before/after state not recorded), leaver (session revocation pending).
 - **Limits:** one client moved between networks (sequential, not simultaneous), network ACLs not yet implemented, and the original Cloud Sync timeout is unresolved.
 
 I first worked on network infrastructure, AD administration, and Microsoft 365 as separate labs. This project brings those foundations into one company scenario and tests how addressing, identity, access, and device management work together.
@@ -48,7 +49,7 @@ Documentation and code comments are maintained in English. Windows configuration
 | AD administration | [Active Directory Homelab](https://github.com/junuiui/homelab) | Original environment preserved; integration uses the separate jh.test AD |
 | Cloud administration | [M365, Entra & Intune Lab](https://github.com/junuiui/m365-entra-intune-lab) | Earlier cloud-only work retained; new workforce and hybrid client verified here |
 
-## What was verified
+## Validation results and evidence
 
 | Area | Result | Evidence |
 |---|---|---|
@@ -68,7 +69,7 @@ Documentation and code comments are maintained in English. Windows configuration
 | Configuration delivery | Login banner appeared; profile IN-CONFIG-Pilot-LogonBanner reported Succeeded: 1, Error/Conflict: 0 | Client and portal screenshots below |
 | App delivery | Company Portal installed automatically, launched in the organization context, and reported Installed for HR-PC-01/Jamie | Installation notification, running app, and Intune device-install report |
 
-Rows marked "No screenshot captured" are session-reported results without a saved screenshot. Some evidence was supplied in chat but is not committed to this repository; see the [Evidence Index](resources/photos/readme.md) for the available files.
+Rows marked "No screenshot captured" are results recorded in the session notes without a saved screenshot. Some evidence was reviewed during testing but is not committed to this repository; see the [Evidence Index](resources/photos/readme.md) for the available files.
 
 ![Router interfaces and routes retained after restart](resources/photos/11-network1.png)
 
@@ -97,7 +98,7 @@ Jamie Morgan was added separately as the joiner. Emma Wilson remains retained bu
 
 The October 30 screenshot of 72 Entra directory objects is historical. The 71/70/1 counts are department-filtered AD employee counts, not a fresh total Entra count. A final inventory export has not been committed yet.
 
-## Final operating state
+## Current operating state
 
 - Windows client: HR-PC-01, Windows 11 Pro, HR/Computers OU, VMnet4, DHCP.
 - Device join: AD domain joined and Microsoft Entra hybrid joined.
@@ -121,4 +122,4 @@ One client was moved between networks and computer OUs. This verifies sequential
 - Confirm Emma's session revocation and any data-retention or hand-over requirements.
 - Commit a reproducible inventory export (AD employee counts, group nesting, tenant and license inventory).
 - Implement network ACLs: Packet Tracer ACL reference, then tested Ubuntu rules.
-- BitLocker/LAPS, backup/restore, and the agreed additional network services.
+- BitLocker/LAPS and backup/restore.
