@@ -68,6 +68,7 @@ A disabled account is not proof that all existing sessions, permissions, license
 - [x] Include the client computer OU in device sync scope and configure hybrid join/SCP.
 - [x] Verify DomainJoined YES, AzureAdJoined YES, DeviceAuthStatus SUCCESS and Jamie PRT YES.
 - [x] Assign Jamie Business Premium and verify Outlook web access.
+- [ ] Save Jamie's license-assignment and Outlook evidence; current completion is documented from the session result.
 - [x] Inspect license snapshot: Emma has zero licenses; Business Premium available 23 of 25.
 - [ ] Capture total tenant inventory and the current scheduled-sync state.
 
@@ -81,9 +82,18 @@ A disabled account is not proof that all existing sessions, permissions, license
 - [x] Deliver IN-CONFIG-Pilot-LogonBanner to the device pilot group.
 - [x] Verify real Windows banner and final portal Succeeded 1 / Error 0 / Conflict 0.
 - [x] Verify required app delivery with Company Portal installed/running and the Intune Installed report.
-- [ ] Capture final per-setting compliance report; the old default-policy 65001 row was not separately shown as cleared.
+- [ ] Capture the WIN-COMP-HR-Pilot Compliant and per-setting results; the old default-policy row was not separately captured as cleared.
 
 MDM scope All is not a license assignment, an autoenrollment GPO link, or a compliance-policy assignment. Each is controlled separately.
+
+## Evidence follow-up
+
+The README now separates implementation, acceptance results and limits at the top. Its evidence table distinguishes saved screenshots/diagnostic output from session-reported outcomes.
+
+- [ ] Capture the missing HR compliance and Jamie Microsoft 365 screenshots.
+- [ ] Preserve the inventory export, final group nesting and tenant/license inventory.
+- [ ] Confirm Emma's session revocation and data disposition.
+- [ ] For any future mover test, record the account identity and before/after state at execution time; do not invent retrospective evidence.
 
 ## Closeout order
 
