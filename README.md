@@ -6,8 +6,6 @@ A hybrid IT infrastructure lab built from one company design: four department ne
 
 I provisioned a 70-person workforce, tested department access, connected AD identities to Entra, and managed a hybrid-joined Windows client. I also configured Windows LAPS and BitLocker with recovery information stored in AD and Entra.
 
-**Latest update: November 1, 2026.**
-
 ## Why I built this
 
 I first built [Network Infrastructure](https://github.com/junuiui/network-infrastructure-lab), [AD Homelab](https://github.com/junuiui/homelab), and [M365 / Entra / Intune](https://github.com/junuiui/m365-entra-intune-lab) as separate projects.
@@ -94,8 +92,10 @@ Full symptoms, approaches, reasons, and verification: [Problem-solving](ProblemS
 | [Problem-solving](ProblemSolving.md) | What failed, why each approach was used, and what resolved it |
 | [Company specification](company-spec.md) | Address plan, workforce, interfaces, and policy scope |
 | [Scope and validation](integration-plan.md) | Delivered scope, exclusions, and evidence boundaries |
-| [November 1 record](progress-2026-11-01.md) | LAPS and BitLocker results |
+| [Phase 1](phase-1.md) | AD preparation and hybrid identity |
+| [Phase 2](phase-2.md) | Department networks, access and device management |
+| [Phase 3](phase-3.md) | LAPS, BitLocker and documentation |
 | [Evidence index](resources/photos/readme.md) | Available screenshots and what they prove |
 | [AD resources](resources/AD/readme.md) | Baseline CSV and provisioning scripts |
 
-The October 30–31 records remain as historical checkpoints. The current scope is defined here and in the scope document.
+Phase 1 and Phase 2 record the earlier build checkpoints. The current scope is defined here and in the scope document.

@@ -1,4 +1,4 @@
-# November 1, 2026 — Security and Documentation
+# Phase 3 — LAPS, BitLocker and Documentation
 
 [README](README.md) · [How-to](HowTo.md) · [Problem-solving](ProblemSolving.md)
 
@@ -16,7 +16,7 @@ The final version covers existing test cleanup, Windows LAPS, BitLocker, final v
 - Queried from the DC as a domain administrator; local LabAdmin was not an AD query identity.
 - Retrieved the password privately and successfully used it on HR-PC-01.
 - Ran Reset-LapsPassword; metadata showed a new update and Success.
-- Captured final update: November 1, 15:37:19; expiry December 1, 15:37:19, as displayed by the guest.
+- Rotation metadata confirmed an updated password and a 30-day expiry.
 - No managed password is published. Use after the final rotation was not separately captured.
 
 ## BitLocker — verified
@@ -42,7 +42,7 @@ The final split is Intune encryption requirement plus AD GPO recovery settings. 
 - How-to expanded with prerequisites, fresh forest/router setup, Windows LAPS and the final BitLocker configuration.
 - Problem-solving records approaches, reasons, results and unresolved causes.
 - Company Specification, scope document, AD resource notes and evidence index aligned.
-- Earlier progress records remain historical.
+- Earlier phase records retain their original validation boundaries.
 
 ## Verification boundary
 

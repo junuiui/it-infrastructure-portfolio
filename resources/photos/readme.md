@@ -1,13 +1,13 @@
 # Evidence Index
 
-[README](../../README.md) · [November 1 Record](../../progress-2026-11-01.md) · [October 31 Record](../../progress-2026-10-31.md)
+[README](../../README.md) · [Phase 3 Record](../../phase-3.md) · [Phase 2 Record](../../phase-2.md)
 
 Screenshots are supplied by the lab owner. The table states what each image supports; account/file names alone are not proof of the active identity.
 
 | File | What it supports | Limit |
 |---|---|---|
 | [00 — Pilot title update](00-emma-wilson-job-title-changed.png) | AD-to-Entra job-title test | Historical pilot, before Emma was disabled |
-| [01 — 72-user directory](01-72-users-sync.png) | October 30 directory population | Not a current post-Jamie count or all-user sign-in test |
+| [01 — 72-user directory](01-72-users-sync.png) | Phase 1 directory population | Not a current post-Jamie count or all-user sign-in test |
 | [02 — HR share open](02-hr-share-open.png) | HR share is reachable and browsable | Visible old 0KB file does not prove new create/edit/delete operations |
 | [03 — Cross-department share denied](03-cross-department-share-denied.png) | Explicit permission denial for ENG share in the HR test sequence | Does not show packet isolation or the complete access matrix |
 | [06 — Four DHCP scopes](06-four-active-dhcp-scopes.png) | HR/ENG/SM/IT scopes Active | Scope ranges/options and exact leases were reported separately |
@@ -47,6 +47,6 @@ Numbering leaves space for additional evidence; no missing image file is referen
 - Emma HR group removal and zero licenses are shown in chat screenshots, not committed here as separate images.
 - Final read-only membership cleanup/access revocation and HR client restoration are owner-reported; no final group export.
 
-November 1 transcript-only results: LAPS administrator retrieval/use and rotation metadata; Intune/Entra BitLocker key presence confirmed by the owner; GPO recovery values 1/1/1 and intermediate policy-delivery diagnostics. No cloud recovery-password image or post-security full-regression evidence is committed.
+Phase 3 transcript-only results: LAPS administrator retrieval/use and rotation metadata; Intune/Entra BitLocker key presence confirmed by the owner; GPO recovery values 1/1/1 and intermediate policy-delivery diagnostics. No cloud recovery-password image or post-security full-regression evidence is committed.
 
 No raw diagnostic archive, password, token, or private key is committed. Selected screenshots include normal lab tenant/device/user identifiers.

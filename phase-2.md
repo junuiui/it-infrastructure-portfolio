@@ -1,4 +1,4 @@
-# Session Record — October 31, 2026
+# Phase 2 — Networks, Access and Device Management
 
 [README](README.md) · [How-to Guide](HowTo.md) · [Company Specification](company-spec.md) · [Evidence Index](resources/photos/readme.md)
 
@@ -277,7 +277,7 @@ The app's empty Recently published apps list means no Available self-service app
 
 ![Intune Installed result](resources/photos/22-company-portal-installed-report.png)
 
-This closes the app-delivery stage. No further VM configuration was performed for ACLs, BitLocker/LAPS or backup/restore in this session.
+This closes the app-delivery stage. LAPS and BitLocker are covered in Phase 3. Network ACLs and backup/restore are outside the final scope.
 
 ## Final state and remaining checks
 
@@ -299,27 +299,12 @@ This closes the app-delivery stage. No further VM configuration was performed fo
 Remaining:
 - Archive current inventory and final group/scheduler/tenant evidence.
 - Confirm Emma session-revocation execution and retained-data decisions.
-- Continue the agreed ACL, BitLocker/LAPS, backup/restore and additional network stages.
+- Continue with LAPS and BitLocker in Phase 3; the final scope excludes ACLs, backup/restore and additional network stages.
 
 See [Evidence Index](resources/photos/readme.md). Current evidence includes the owner's five new network/OU/client screenshots and the read-only test captures.
 
-## Next-session handoff
+## Handoff to Phase 3
 
-Preserve HR-PC-01 in HR/Computers on VMnet4, with Jamie as primary user. Keep MDM scope All/WIP None and the current working identity/enrollment configuration. Emma remains disabled.
+Preserve HR-PC-01 in HR/Computers on VMnet4, with Jamie as primary user. Keep MDM scope All/WIP None and the working identity/enrollment configuration. Emma remains disabled.
 
-Start with network ACL work:
-1. Read the fixed Packet Tracer ACL reference.
-2. Build an explicit source/destination/service matrix.
-3. Preserve AD/DNS/DHCP/SMB and management paths.
-4. Stage and apply Ubuntu rules with a concrete rollback.
-5. Validate both allowed and denied traffic before saving persistent rules.
-
-Then complete the approved HR BitLocker/recovery-key and LAPS checks, followed by an actual backup/restore test and evidence reconciliation. Guest/Wi-Fi/voice remain a separate later implementation stage.
-
-Planning estimates, not guarantees:
-- ACL design, application and tests: approximately 1.5–3 hours.
-- HR BitLocker, key escrow and LAPS: approximately 2–3 hours.
-- Backup and restore test: approximately 1.5–3 hours.
-- Final inventory/session/data confirmations and documentation: approximately 0.5–1 hour.
-
-These total roughly 5.5–10 hours for the primary security/recovery closeout, excluding the larger guest/Wi-Fi/voice extension. Dependencies and service processing time can extend the session.
+[Phase 3](phase-3.md) covers Windows LAPS, BitLocker, recovery-key storage and documentation. Network ACLs, backup/restore and expanded guest/Wi-Fi/voice deployment are excluded from the final scope.

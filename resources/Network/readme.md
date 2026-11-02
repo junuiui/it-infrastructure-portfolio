@@ -1,6 +1,6 @@
 # Network Resources
 
-[Company Specification](../../company-spec.md) · [How-to Guide](../../HowTo.md) · [October 31 Record](../../progress-2026-10-31.md)
+[Company Specification](../../company-spec.md) · [How-to Guide](../../HowTo.md) · [Phase 2 Record](../../phase-2.md)
 
 The [Network Infrastructure Lab](https://github.com/junuiui/network-infrastructure-lab) remains the fixed Packet Tracer design authority. Its files and IP plan are unchanged.
 

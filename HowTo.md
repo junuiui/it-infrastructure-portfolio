@@ -1,8 +1,8 @@
 # How-to Guide
 
-[README](README.md) · [Company Specification](company-spec.md) · [Problems and Resolutions](ProblemSolving.md) · [October 31 Record](progress-2026-10-31.md)
+[README](README.md) · [Company Specification](company-spec.md) · [Problems and Resolutions](ProblemSolving.md) · [Phase 2 Record](phase-2.md)
 
-This guide builds the working lab configuration recorded through November 1, 2026. Use the Windows GUI for configuration, Ubuntu terminal commands for routing, and PowerShell for focused preparation and verification. Fresh-build steps are for a new lab; do not recreate existing users, shares, or domain services.
+This guide builds the working lab configuration recorded through Phase 3. Use the Windows GUI for configuration, Ubuntu terminal commands for routing, and PowerShell for focused preparation and verification. Fresh-build steps are for a new lab; do not recreate existing users, shares, or domain services.
 
 **Working configuration:** four department networks, AD groups/shares/logon GPOs, Connect Sync, a hybrid-joined Intune client, Microsoft 365 access, Company Portal, Windows LAPS, and BitLocker. HR-PC-01 is on HR/VMnet4. Backup/restore and network ACLs are excluded from this version.
 
@@ -318,7 +318,7 @@ Set-ADSyncScheduler -SyncCycleEnabled $true
 Get-ADSyncScheduler | Select-Object SyncCycleEnabled, StagingModeEnabled, SyncCycleInProgress
 ```
 
-The October 31 startup screenshot confirmed the scheduler enabled, staging mode off, and ADSync Running. Capture the state again at final restart. Moving users out of scope can delete their cloud objects.
+The Phase 2 startup screenshot confirmed the scheduler enabled, staging mode off, and ADSync Running. Capture the state again at final restart. Moving users out of scope can delete their cloud objects.
 
 ## 6. Department security groups
 
@@ -990,7 +990,7 @@ Continue with the LAPS and BitLocker sections below. Network ACLs, additional Pa
 
 ## 20. Windows LAPS — AD password backup
 
-**Verified on November 1:** policy application, AD backup event 10018, administrator retrieval, actual use of the managed LabAdmin credentials, and password rotation. LAPS manages the client local account, not JH\\Administrator.
+**Verified in Phase 3:** policy application, AD backup event 10018, administrator retrieval, actual use of the managed LabAdmin credentials, and password rotation. LAPS manages the client local account, not JH\\Administrator.
 
 ### Prepare the DC and account
 
@@ -1069,7 +1069,7 @@ In that elevated client shell:
 Reset-LapsPassword
 ```
 
-Query metadata again on the DC. Verify PasswordUpdateTime advances and DecryptionStatus remains Success. The recorded rotation updated the password on November 1 and set expiry to December 1. The session verified use before this final rotation; a second credential-use test after rotation was not separately recorded.
+Query metadata again on the DC. Verify PasswordUpdateTime advances and DecryptionStatus remains Success. The recorded rotation advanced the update time and set a 30-day expiry. The session verified use before this final rotation; a second credential-use test after rotation was not separately recorded.
 
 ## 21. BitLocker — Intune encryption with GPO recovery settings
 
@@ -1189,7 +1189,7 @@ No forced BitLocker recovery boot or noncompliance/Conditional Access block test
 
 ## 22. Final verification and evidence
 
-This is a repeatable acceptance checklist. Earlier sections state the results already recorded; a fresh combined regression after November 1 security changes has not been supplied.
+This is a repeatable acceptance checklist. Earlier sections state the results already recorded; a fresh combined regression after Phase 3 security changes has not been supplied.
 
 | Check | Where / method | Expected |
 |---|---|---|

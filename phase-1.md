@@ -1,14 +1,14 @@
-# Session Record — October 30, 2026
+# Phase 1 — AD and Hybrid Identity
 
-> Historical checkpoint. Pending items below describe the end of October 30, not the current state. See [October 31 results](progress-2026-10-31.md) for completed client, network, lifecycle, M365 and Intune work.
+> Phase checkpoint. Pending items below describe the end of Phase 1, not the current state. See [Phase 2](phase-2.md) for client, network, lifecycle, M365 and Intune results, and [Phase 3](phase-3.md) for LAPS and BitLocker.
 
 [README](README.md) · [How-to Guide](HowTo.md) · [Problems and Resolutions](ProblemSolving.md)
 
 ## Outcome
 
-The session progressed beyond the original four-hour target of company alignment and pilot preparation. Connect Sync synchronized the 70-person AD workforce. Emma Wilson's cloud sign-in and job-title update were tested. Department resource groups and four file shares were configured; supplied output verifies the share and NTFS settings.
+This phase established the company model and hybrid identity path. Connect Sync synchronized the 70-person AD workforce. Emma Wilson's cloud sign-in and job-title update were tested. Department resource groups and four file shares were configured; supplied output verifies the share and NTFS settings.
 
-The session stopped before client access testing. The replacement Windows 11 client needs reinstalling with a suitable image and a known local administrator.
+Client access testing continued in Phase 2. The replacement Windows 11 client needs reinstalling with a suitable image and a known local administrator.
 
 ## Evidence and status
 
@@ -72,7 +72,7 @@ Actions included:
 - Fixing local AD DNS and validating basic outbound connectivity.
 - Checking service state, WinHTTP proxy, endpoint names, and a ServiceBus HTTPS response.
 - Restarting the agent after network changes.
-- Installing diagnostic-tool prerequisites and collecting a three-minute verbose trace.
+- Installing diagnostic-tool prerequisites and collecting a verbose diagnostic trace.
 - Identifying a request received via Relay, an ACK, and subsequent WebSocket connection failure after approximately 30 seconds.
 - Creating the missing Endpoints folder with inherited service-account access.
 - Confirming endpoints.txt was subsequently saved, without resolving the timeout.
@@ -142,7 +142,7 @@ No offline password bypass, device wipe, or Entra disconnection was performed. T
 
 A replacement VM named win-lab was attempted. The owner signed in with Emma during setup, then reported that the image was wrong and chose to reinstall. Its edition, join state, and domain readiness are unverified. Do not claim that it is AD joined or that HR share access has passed.
 
-## Exact next-session starting point
+## Handoff to Phase 2
 
 1. Verify Windows 11 Pro/Enterprise media and complete a fresh client installation.
 2. Establish and securely record a working local administrator before any identity changes.

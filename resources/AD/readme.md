@@ -1,6 +1,6 @@
 # AD Resources
 
-[How-to Guide](../../HowTo.md) · [Company Specification](../../company-spec.md) · [October 31 Record](../../progress-2026-10-31.md)
+[How-to Guide](../../HowTo.md) · [Company Specification](../../company-spec.md) · [Phase 2 Record](../../phase-2.md)
 
 | File | Purpose |
 |---|---|
@@ -77,7 +77,7 @@ Nolan Allen -> GG-HR-ReadOnly_Test -> DL_HR_Share_Read -> HR share Read/RX
 
 Nolan retained GG_IT_Users. The client temporarily used the IT computer OU while remaining on HR VMnet4. Screenshots show Nolan's read success and denied save/create/delete. Cleanup/revoked HR access and return to HR/Computers with Jamie were owner-reported; a final direct-membership export was not supplied.
 
-## November 1 security extension
+## Phase 3 security extension
 
 - Windows LAPS manages HR-PC-01's existing local LabAdmin account through GPO-HR-Windows-LAPS, linked to HR/Computers.
 - Password backup is AD, encrypted, 20 characters, 30 days. Authorized DC-side retrieval/use and rotation were verified.
@@ -87,4 +87,4 @@ Nolan retained GG_IT_Users. The client temporarily used the IT computer OU while
 - Do not add LAPS passwords or BitLocker recovery passwords to the CSV, scripts, screenshots, or repository.
 - Backup/restore was removed from scope. Key storage does not establish a tested data or system restore.
 
-See How-to sections 20–22 for setup and verification; see the November 1 record for results and evidence boundaries.
+See How-to sections 20–22 for setup and verification; see the Phase 3 record for results and evidence boundaries.

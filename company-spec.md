@@ -1,6 +1,6 @@
 # Company Specification
 
-**Current state: November 1, 2026.** The tables retain the original 70-person design and distinguish implemented data networks from simulation-only services.
+**Current configuration.** The tables retain the original 70-person design and distinguish implemented data networks from simulation-only services.
 
 [README](README.md) · [How-to Guide](HowTo.md) · [Integration Plan](integration-plan.md)
 
@@ -33,7 +33,7 @@ The tables below distinguish the full design from the smaller VMware implementat
 - Same-name conflicts require review; the current script skips existing account-name/UPN conflicts rather than resolving them.
 - Keep administrator, service, and resource objects separate from the 70-person employee count.
 
-Existing cloud-only test employees were removed. The October 30 screenshot of 72 active directory objects is historical: 70 employees plus administrator and Sales objects. On October 31, Jamie Morgan was added in HR and Emma Wilson was retained but disabled. ADUC Saved Queries subsequently confirmed 71 employee objects, 70 enabled and one disabled (Emma). A final total Entra export has not been captured. Neither directory-object count nor employee count is a licensed-mailbox count.
+Existing cloud-only test employees were removed. The Phase 1 screenshot of 72 active directory objects is historical: 70 employees plus administrator and Sales objects. In Phase 2, Jamie Morgan was added in HR and Emma Wilson was retained but disabled. ADUC Saved Queries subsequently confirmed 71 employee objects, 70 enabled and one disabled (Emma). A final total Entra export has not been captured. Neither directory-object count nor employee count is a licensed-mailbox count.
 
 The CSV remains the original 70-person baseline (HR 8 / ENG 35 / SM 22 / IT 5). Jamie is outside that CSV, so scripts/inventory checks must account for the additional user and disabled status.
 
@@ -74,7 +74,7 @@ The CSV remains the original 70-person baseline (HR 8 / ENG 35 / SM 22 / IT 5). 
 - Voice DNS: 0.0.0.0; phone TFTP: 192.168.1.4.
 - serverPool is a Packet Tracer default-pool workaround, not a required Windows DHCP scope.
 - Pool capacity is not employee headcount.
-- Four Windows data scopes and the Ubuntu DHCP Relay were implemented and tested with one representative client on October 31.
+- Four Windows data scopes and the Ubuntu DHCP Relay were implemented and tested with one representative client in Phase 2.
 - Voice, guest, Wi-Fi, printer, and web-server entries remain design/simulation references.
 
 ## Fixed addresses and service boundaries
@@ -193,7 +193,7 @@ Primary user: Jamie Morgan. Final hybrid/device authentication and PRT were veri
 
 Department logon GPOs use computer OU placement. Group membership controls the allowed user population and file permissions. A user's OU or Department field alone does not grant access.
 
-Company Portal, restart persistence and HR Read acceptance were verified before the security extension. Windows LAPS and BitLocker were verified on November 1. Network ACLs and backup/restore are excluded from the final scope; the earlier implementation plan is superseded.
+Company Portal, restart persistence and HR Read acceptance were verified before the security extension. Windows LAPS and BitLocker were verified in Phase 3. Network ACLs and backup/restore are excluded from the final scope; the earlier implementation plan is superseded.
 
 ## Later validation checkpoint
 
@@ -206,7 +206,7 @@ Company Portal, restart persistence and HR Read acceptance were verified before 
 - Company Portal deployment: Microsoft Store app (new), System context, Required to SG-Intune-Pilot-Devices. Client success notification and live app were captured; Intune reports HR-PC-01 Installed, Jamie UPN, version 11.2.2044.0.
 - Company Portal displays HR-PC-01 and Can access company resources. No optional self-service apps were published to Jamie at capture time.
 
-## November 1 security configuration
+## Phase 3 security configuration
 
 | Component | Final setting / source |
 |---|---|
@@ -220,7 +220,7 @@ Company Portal, restart persistence and HR Read acceptance were verified before 
 | Recovery records | AD child record observed; Entra/Intune key presence confirmed |
 | Backup and restore | Excluded; no file/system-state backup or restore acceptance claimed |
 
-The DC required Windows updates before the Windows LAPS module became available. LAPS event 10018, password retrieval/use and rotation were verified. The final rotation reported update November 1 and expiry December 1.
+The DC required Windows updates before the Windows LAPS module became available. LAPS event 10018, password retrieval/use and rotation were verified. The final rotation confirmed a new update time and a 30-day expiry.
 
 The installation ISO had to be disconnected before silent BitLocker encryption. The corrected Intune recovery settings were not observed on the client; the recovery GPO applied values 1/1/1 and encryption then completed. The delivery issue's root cause remains unconfirmed.
 

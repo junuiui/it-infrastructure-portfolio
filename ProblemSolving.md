@@ -2,7 +2,7 @@
 
 [README](README.md) · [How-to](HowTo.md) · [Evidence index](resources/photos/readme.md)
 
-Updated November 1, 2026. This document records the symptom, evidence, reason for each approach, change, and verification. Use the How-to for the final build sequence. A workaround is not a confirmed root cause.
+This document records the symptom, evidence, reason for each approach, change, and verification. Use the How-to for the final build sequence. A workaround is not a confirmed root cause.
 
 ## 1. DC DNS failed after switching to bridged networking
 

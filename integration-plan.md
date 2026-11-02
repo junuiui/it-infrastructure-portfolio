@@ -2,7 +2,7 @@
 
 [README](README.md) · [How-to](HowTo.md) · [Problem-solving](ProblemSolving.md)
 
-**Current scope: November 1, 2026.** This document replaces the earlier open-ended implementation roadmap. Historical session records retain the plans that existed at the time.
+**Current scope.** This document replaces the earlier open-ended implementation roadmap. Phase records retain the decisions and validation boundaries from each build stage.
 
 ## Objective
 
@@ -19,8 +19,8 @@ Connect the existing Network Infrastructure, AD and M365 labs through one compan
 | Hybrid identity | Connect Sync/PHS, AD-to-Entra attribute test, hybrid device join, successful device authentication and Jamie PRT |
 | Microsoft 365 | Jamie licensed and Outlook web access reported successful |
 | Intune | Enrollment, primary user Jamie, HR compliance, login banner and Company Portal delivery |
-| Windows LAPS | AD password backup, authorized retrieval/use and rotation verified November 1 |
-| BitLocker | Intune encryption plus GPO recovery; C: 100%, Protection On; AD/Entra recovery records verified November 1 |
+| Windows LAPS | AD password backup, authorized retrieval/use and rotation verified in Phase 3 |
+| BitLocker | Intune encryption plus GPO recovery; C: 100%, Protection On; AD/Entra recovery records verified in Phase 3 |
 
 ## Final management boundaries
 
@@ -44,7 +44,7 @@ These are boundaries, not required tasks blocking this version.
 
 ## Evidence and closeout boundaries
 
-The final combined regression after the November 1 security changes has not been recorded. The How-to ends with the repeatable check matrix.
+The final combined regression after the Phase 3 security changes has not been recorded. The How-to ends with the repeatable check matrix.
 
 Existing results must not be expanded into untested claims:
 - The mover account identity and before/after evidence were not saved.
@@ -56,4 +56,4 @@ Existing results must not be expanded into untested claims:
 
 ## Current documents
 
-README is the recruiter-facing overview. How-to is the working build/runbook. Problem-solving preserves investigation decisions and unresolved causes. Company Specification holds the addresses and policy scopes. November 1 is the latest security checkpoint; October 30–31 records are historical.
+README is the recruiter-facing overview. How-to is the working build/runbook. Problem-solving preserves investigation decisions and unresolved causes. Company Specification holds the addresses and policy scopes. Phase 3 is the security checkpoint; Phase 1 and Phase 2 record the earlier build stages.
