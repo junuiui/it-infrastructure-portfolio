@@ -1,6 +1,6 @@
 # How-to Guide
 
-[README](README.md) · [Company Specification](company-spec.md) · [Problems and Resolutions](ProblemSolving.md) · [Phase 2 Record](phase-2.md)
+[README](README.md) · [Company Specification](docs/company-spec.md) · [Problems and Resolutions](problem-solving.md) · [Phase 2 Record](docs/phases/phase-2.md)
 
 This guide builds the working lab configuration recorded through Phase 3. Use the Windows GUI for configuration, Ubuntu terminal commands for routing, and PowerShell for focused preparation and verification. Fresh-build steps are for a new lab; do not recreate existing users, shares, or domain services.
 
@@ -1189,25 +1189,11 @@ No forced BitLocker recovery boot or noncompliance/Conditional Access block test
 
 ## 22. Final verification and evidence
 
-This is a repeatable acceptance checklist. Earlier sections state the results already recorded; a fresh combined regression after Phase 3 security changes has not been supplied.
+Run the [final verification matrix](docs/validation.md#final-verification-matrix) after building or changing the lab. It lists the machine, method and expected result for each check.
 
-| Check | Where / method | Expected |
-|---|---|---|
-| Router | ip -br -4 addr; routes; forwarding; NAT; Relay | Six NICs, one default route, forwarding 1, five NAT rules, Relay active |
-| DC/DNS | dcdiag, AD SRV lookup, DHCP console | Review test results; four active data scopes |
-| Sync | ADSync service/scheduler and Synchronization Service Manager | Running, scheduler enabled, successful relevant exports |
-| Client | ipconfig /all; DNS/SMB/HTTPS checks from section 16 | HR lease, AD DNS, working server and outbound access |
-| Hybrid identity | dsregcmd /status as Jamie, not elevated as another account | Both joins YES, DeviceAuthStatus SUCCESS, AzureAdPrt YES |
-| Authorization | Jamie own-share file operations; cross-department UNC test | HR allowed, unauthorized shares denied |
-| Test cleanup | ADUC nested groups | Nolan has no direct or temporary HR Read grant |
-| Leaver | AD/Entra Emma; administrator session-revocation action/audit | Disabled, department access removed; record revocation separately |
-| Intune | Client Info Sync and actual policy/app reports | Management sync success; inspect each result rather than one overview badge |
-| LAPS | DC metadata; event 10018 | LabAdmin, recent rotation, successful authorized decryption |
-| BitLocker | manage-bde -status C: and directory records | 100%, Protection On, recovery record in AD/Entra |
+Save non-secret evidence with the test account, operation and expected/actual result. Use the [evidence index](resources/photos/README.md) to distinguish screenshots from session-reported outcomes. Keep the original CSV unchanged; export live inventory separately if needed.
 
-Save non-secret evidence with the test account, date, operation and expected/actual result. Keep the baseline CSV unchanged; export live inventory separately if needed.
-
-Backup/restore, network ACL implementation, extra department clients, and expanded voice/guest/Wi-Fi deployment are excluded. Do not describe snapshots, recovery-key storage, or a disabled user as proof of a tested data restore.
+Backup/restore, network ACLs, extra clients and expanded Packet Tracer services are excluded. A final combined regression after the security changes has not been recorded.
 
 ## Official references
 

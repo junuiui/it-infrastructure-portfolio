@@ -1,6 +1,6 @@
 # Evidence Index
 
-[README](../../README.md) · [Phase 3 Record](../../phase-3.md) · [Phase 2 Record](../../phase-2.md)
+[README](../../README.md) · [Phase 3 Record](../../docs/phases/phase-3.md) · [Phase 2 Record](../../docs/phases/phase-2.md)
 
 Screenshots are supplied by the lab owner. The table states what each image supports; account/file names alone are not proof of the active identity.
 

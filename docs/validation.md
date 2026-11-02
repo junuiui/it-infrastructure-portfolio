@@ -1,6 +1,6 @@
-# Scope and Validation
+# Validation Record
 
-[README](README.md) · [How-to](HowTo.md) · [Problem-solving](ProblemSolving.md)
+[README](../README.md) · [How-to](../how-to.md) · [Problem-solving](../problem-solving.md)
 
 **Current scope.** This document replaces the earlier open-ended implementation roadmap. Phase records retain the decisions and validation boundaries from each build stage.
 
@@ -44,7 +44,7 @@ These are boundaries, not required tasks blocking this version.
 
 ## Evidence and closeout boundaries
 
-The final combined regression after the Phase 3 security changes has not been recorded. The How-to ends with the repeatable check matrix.
+The final combined regression after the Phase 3 security changes has not been recorded. The repeatable check matrix is below.
 
 Existing results must not be expanded into untested claims:
 - The mover account identity and before/after evidence were not saved.
@@ -53,6 +53,25 @@ Existing results must not be expanded into untested claims:
 - Final employee/tenant/group inventory exports and some cloud/compliance screenshots are not committed.
 - LAPS retrieval/use was tested before the final rotation; the new metadata confirms rotation, not a separately recorded second credential-use test.
 - BitLocker directory records exist; a forced recovery boot and saved matching-ID evidence across both directories were not supplied.
+
+## Final verification matrix
+
+This is the checklist for a fresh build or later change. It is not a claim that all checks were repeated together after Phase 3.
+
+| Check | Where / method | Expected |
+|---|---|---|
+| Router | ip -br -4 addr; routes; forwarding; NAT; Relay | Six NICs, one default route, forwarding 1, five NAT rules, Relay active |
+| DC/DNS | dcdiag, AD SRV lookup, DHCP console | Review test results; four active data scopes |
+| Sync | ADSync service/scheduler and Synchronization Service Manager | Running, scheduler enabled, successful relevant exports |
+| Client | ipconfig /all; DNS/SMB/HTTPS checks from section 16 | HR lease, AD DNS, working server and outbound access |
+| Hybrid identity | dsregcmd /status as Jamie, not elevated as another account | Both joins YES, DeviceAuthStatus SUCCESS, AzureAdPrt YES |
+| Authorization | Jamie own-share file operations; cross-department UNC test | HR allowed, unauthorized shares denied |
+| Test cleanup | ADUC nested groups | Nolan has no direct or temporary HR Read grant |
+| Leaver | AD/Entra Emma; administrator session-revocation action/audit | Disabled, department access removed; record revocation separately |
+| Intune | Client Info Sync and actual policy/app reports | Management sync success; inspect each result rather than one overview badge |
+| LAPS | DC metadata; event 10018 | LabAdmin, recent rotation, successful authorized decryption |
+| BitLocker | manage-bde -status C: and directory records | 100%, Protection On, recovery record in AD/Entra |
+
 
 ## Current documents
 

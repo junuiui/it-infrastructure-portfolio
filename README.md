@@ -56,7 +56,7 @@ One Windows client was reused for department tests. The final client is **HR-PC-
 - [LAPS password stored in AD](resources/photos/23-laps-ad-backup-success.png)
 - [BitLocker fully encrypted / Protection On](resources/photos/24-bitlocker-encrypted.png) and [AD recovery record](resources/photos/25-bitlocker-ad-recovery-record.png)
 
-See the [Evidence Index](resources/photos/readme.md) for screenshot coverage and session-reported results.
+See the [Evidence Index](resources/photos/README.md) for screenshot coverage and session-reported results.
 
 ## Problems and solutions
 
@@ -72,7 +72,7 @@ Cloud Sync on-demand provisioning failed even after DNS repair, endpoint checks,
 
 The client first detected the Windows installation ISO. After disconnecting it, recovery policy blocked AD backup. The corrected Intune recovery settings did not appear on the client. I kept Intune's encryption settings and applied recovery settings through an AD GPO. Encryption then reached 100% with Protection On.
 
-Full symptoms, approaches, reasons, and verification: [Problem-solving](ProblemSolving.md).
+Full symptoms, approaches, reasons, and verification: [Problem-solving](problem-solving.md).
 
 ## Limitations
 
@@ -88,14 +88,29 @@ Full symptoms, approaches, reasons, and verification: [Problem-solving](ProblemS
 
 | Document | Use |
 |---|---|
-| [How-to](HowTo.md) | Build the working configuration, then verify each stage |
-| [Problem-solving](ProblemSolving.md) | What failed, why each approach was used, and what resolved it |
-| [Company specification](company-spec.md) | Address plan, workforce, interfaces, and policy scope |
-| [Scope and validation](integration-plan.md) | Delivered scope, exclusions, and evidence boundaries |
-| [Phase 1](phase-1.md) | AD preparation and hybrid identity |
-| [Phase 2](phase-2.md) | Department networks, access and device management |
-| [Phase 3](phase-3.md) | LAPS, BitLocker and documentation |
-| [Evidence index](resources/photos/readme.md) | Available screenshots and what they prove |
-| [AD resources](resources/AD/readme.md) | Baseline CSV and provisioning scripts |
+| [How-to](how-to.md) | Build the working configuration, then verify each stage |
+| [Problem-solving](problem-solving.md) | What failed, why each approach was used, and what resolved it |
+| [Company specification](docs/company-spec.md) | Address plan, workforce, interfaces, and policy scope |
+| [Validation record](docs/validation.md) | Results, final check matrix and evidence boundaries |
+| [Phase 1](docs/phases/phase-1.md) | AD preparation and hybrid identity |
+| [Phase 2](docs/phases/phase-2.md) | Department networks, access and device management |
+| [Phase 3](docs/phases/phase-3.md) | LAPS, BitLocker and documentation |
+| [Evidence index](resources/photos/README.md) | Available screenshots and what they prove |
+| [AD resources](resources/AD/README.md) | Baseline CSV and provisioning scripts |
 
 Phase 1 and Phase 2 record the earlier build checkpoints. The current scope is defined here and in the scope document.
+
+### Repository layout
+
+```text
+README.md                 Portfolio overview
+how-to.md                 Reproducible setup
+problem-solving.md        Investigations and fixes
+docs/
+  company-spec.md         Addressing and configuration reference
+  validation.md           Results and acceptance checklist
+  phases/                 Three implementation checkpoints
+resources/
+  AD/                     Baseline CSV and original scripts
+  photos/                 Screenshots and evidence index
+```

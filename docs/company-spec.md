@@ -2,7 +2,7 @@
 
 **Current configuration.** The tables retain the original 70-person design and distinguish implemented data networks from simulation-only services.
 
-[README](README.md) · [How-to Guide](HowTo.md) · [Integration Plan](integration-plan.md)
+[README](../README.md) · [How-to Guide](../how-to.md) · [Validation Record](validation.md)
 
 ## Authority and implementation status
 
@@ -10,6 +10,8 @@ The existing Packet Tracer lab is the fixed network design reference. Its files 
 
 - [Final network configuration](https://github.com/junuiui/network-infrastructure-lab/blob/main/HowTo.md)
 - [Original headcount plan](https://github.com/junuiui/network-infrastructure-lab/blob/69d8c1a8993dfd07d1f167922214b5a84aa0ceb9/docs/architecture.md)
+
+The Packet Tracer core/edge transit 10.0.0.0/30 is separate from VMware VMnet8 NAT 10.0.0.0/24. Reusing the address family does not connect the platforms.
 
 The tables below distinguish the full design from the smaller VMware implementation. A design entry is not evidence that a corresponding VM service has been deployed.
 
@@ -194,17 +196,6 @@ Primary user: Jamie Morgan. Final hybrid/device authentication and PRT were veri
 Department logon GPOs use computer OU placement. Group membership controls the allowed user population and file permissions. A user's OU or Department field alone does not grant access.
 
 Company Portal, restart persistence and HR Read acceptance were verified before the security extension. Windows LAPS and BitLocker were verified in Phase 3. Network ACLs and backup/restore are excluded from the final scope; the earlier implementation plan is superseded.
-
-## Later validation checkpoint
-
-- HR-PC-01 lease: 192.168.0.194/27, gateway 192.168.0.193, DHCP/DNS 192.168.1.2.
-- Jamie post-restart identity: DomainJoined YES, AzureAdJoined YES, DeviceAuthStatus SUCCESS, AzureAdPrt YES.
-- HR share and Intune Sync were reported healthy after restart and subsequent computer-OU restoration.
-- Inventory: 71 employee objects / 70 enabled / one disabled.
-- Microsoft 365 license view: Emma unlicensed; Business Premium showed 23 available out of 25 at capture time.
-- Current client placement after read-only testing: HR/Computers, VMnet4; Jamie restored by owner report.
-- Company Portal deployment: Microsoft Store app (new), System context, Required to SG-Intune-Pilot-Devices. Client success notification and live app were captured; Intune reports HR-PC-01 Installed, Jamie UPN, version 11.2.2044.0.
-- Company Portal displays HR-PC-01 and Can access company resources. No optional self-service apps were published to Jamie at capture time.
 
 ## Phase 3 security configuration
 

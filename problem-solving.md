@@ -1,6 +1,6 @@
 # Problem-solving
 
-[README](README.md) · [How-to](HowTo.md) · [Evidence index](resources/photos/readme.md)
+[README](README.md) · [How-to](how-to.md) · [Evidence index](resources/photos/README.md)
 
 This document records the symptom, evidence, reason for each approach, change, and verification. Use the How-to for the final build sequence. A workaround is not a confirmed root cause.
 
