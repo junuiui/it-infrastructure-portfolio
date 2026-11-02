@@ -1,6 +1,6 @@
 # Company Specification
 
-**Current state: October 31, 2026.** The tables retain the original 70-person design and distinguish implemented data networks from simulation-only services.
+**Current state: November 1, 2026.** The tables retain the original 70-person design and distinguish implemented data networks from simulation-only services.
 
 [README](README.md) · [How-to Guide](HowTo.md) · [Integration Plan](integration-plan.md)
 
@@ -193,7 +193,7 @@ Primary user: Jamie Morgan. Final hybrid/device authentication and PRT were veri
 
 Department logon GPOs use computer OU placement. Group membership controls the allowed user population and file permissions. A user's OU or Department field alone does not grant access.
 
-Company Portal app deployment, restart persistence and HR Read acceptance have been verified. Interdepartmental packet-filter ACLs, HR BitLocker/LAPS validation and backup restore remain.
+Company Portal, restart persistence and HR Read acceptance were verified before the security extension. Windows LAPS and BitLocker were verified on November 1. Network ACLs and backup/restore are excluded from the final scope; the earlier implementation plan is superseded.
 
 ## Later validation checkpoint
 
@@ -205,3 +205,23 @@ Company Portal app deployment, restart persistence and HR Read acceptance have b
 - Current client placement after read-only testing: HR/Computers, VMnet4; Jamie restored by owner report.
 - Company Portal deployment: Microsoft Store app (new), System context, Required to SG-Intune-Pilot-Devices. Client success notification and live app were captured; Intune reports HR-PC-01 Installed, Jamie UPN, version 11.2.2044.0.
 - Company Portal displays HR-PC-01 and Can access company resources. No optional self-service apps were published to Jamie at capture time.
+
+## November 1 security configuration
+
+| Component | Final setting / source |
+|---|---|
+| GPO-HR-Windows-LAPS | HR/Computers; existing local LabAdmin; AD backup; password encryption enabled; 20 characters; 30 days |
+| LAPS retrieval | Authorized Domain Admin on the DC; no employee password-read delegation |
+| IN-ENC-HR-BitLocker | Pilot device group; Require Device Encryption Enabled, Allow Warning For Other Disk Encryption Disabled, Allow Standard User Encryption Enabled |
+| Intune OS recovery options | Not configured in the encryption profile |
+| IN-ENC-HR-Recovery | Standalone trial profile; pilot assignment removed for the final configuration |
+| GPO-HR-BitLocker-Recovery | HR/Computers; 48-digit recovery password required; AD backup of password and key package required before enablement |
+| Drive result | C: Fully Encrypted, 100%, XTS-AES 128, Protection On; TPM and Numerical Password protectors |
+| Recovery records | AD child record observed; Entra/Intune key presence confirmed |
+| Backup and restore | Excluded; no file/system-state backup or restore acceptance claimed |
+
+The DC required Windows updates before the Windows LAPS module became available. LAPS event 10018, password retrieval/use and rotation were verified. The final rotation reported update November 1 and expiry December 1.
+
+The installation ISO had to be disconnected before silent BitLocker encryption. The corrected Intune recovery settings were not observed on the client; the recovery GPO applied values 1/1/1 and encryption then completed. The delivery issue's root cause remains unconfirmed.
+
+These results do not establish a new combined network/cloud regression, forced recovery boot, or BitLocker compliance/Conditional Access test. Keep the original CSV, addresses, and historical records unchanged.

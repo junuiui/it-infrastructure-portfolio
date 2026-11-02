@@ -1,125 +1,101 @@
 # IT Infrastructure Portfolio
 
-A company lab connecting a fixed Packet Tracer network design with VMware networking, Active Directory, Microsoft Entra ID, Microsoft 365, and Intune.
+## Summary
 
-- **Built:** four department networks, a new AD domain (`jh.test`) with 70 baseline employees, Microsoft Entra Connect Sync, and an Intune-managed hybrid-joined client, all from one company specification.
-- **Verified:** department share and GPO access; hybrid join; Intune compliance, configuration profile, and app delivery.
-- **Lifecycle tests:** joiner (complete), mover (before/after state not recorded), leaver (session revocation pending).
-- **Limits:** one client moved between networks (sequential, not simultaneous), network ACLs not yet implemented, and the original Cloud Sync timeout is unresolved.
+A hybrid IT infrastructure lab built from one company design: four department networks, on-premises Active Directory, Microsoft Entra ID, Microsoft 365, and Intune.
 
-I first worked on network infrastructure, AD administration, and Microsoft 365 as separate labs. This project brings those foundations into one company scenario and tests how addressing, identity, access, and device management work together.
+I provisioned a 70-person workforce, tested department access, connected AD identities to Entra, and managed a hybrid-joined Windows client. I also configured Windows LAPS and BitLocker with recovery information stored in AD and Entra.
 
-**Status as of October 31, 2026.**
+**Latest update: November 1, 2026.**
 
-## Architecture
+## Why I built this
+
+I first built [Network Infrastructure](https://github.com/junuiui/network-infrastructure-lab), [AD Homelab](https://github.com/junuiui/homelab), and [M365 / Entra / Intune](https://github.com/junuiui/m365-entra-intune-lab) as separate projects.
+
+I wanted to connect them into one IT infrastructure lab. Instead of testing each service alone, I used one company model to see how IP addressing, DNS, user accounts, permissions, and device management work together.
+
+The original Packet Tracer design stays unchanged. VMware follows its department addressing; the two platforms are separate.
+
+## What I built and tested
 
 ```text
-Packet Tracer design (fixed addressing and topology reference)
-        |  same addressing design, not physically connected
-        v
-VMware implementation
-  Router (six interfaces, NAT, DHCP relay)
-    |-- Department networks: HR / Engineering / Sales-Marketing / IT
-    '-- Windows Server: AD DS (jh.test), DNS, DHCP, department shares
-  AD (jh.test) --Entra Connect Sync--> Microsoft Entra ID --> Intune / Microsoft 365
-  HR-PC-01: AD domain joined + Entra hybrid joined, managed by Intune
+Packet Tracer: department addressing and network design
+                         |
+                  VMware implementation
+                         |
+Ubuntu router — HR / Engineering / Sales-Marketing / IT
+  NAT + DHCP Relay       |
+                         +— Windows Server: AD DS + DNS + DHCP + file shares
+                                      |
+                               Entra Connect Sync
+                                      |
+                              Microsoft Entra ID
+                                      |
+                              Microsoft 365 / Intune
+
+HR-PC-01: AD joined + Entra hybrid joined + Intune managed
+          Windows LAPS + BitLocker
 ```
+
+| Area | Work and result |
+|---|---|
+| Network services | Four department subnets, Windows DHCP scopes, Ubuntu DHCP Relay and NAT. DHCP, AD DNS, server access, and Internet connectivity tested in each department. |
+| Identity | Created 70 synthetic employees from CSV. Added Jamie as a joiner and retained Emma as a disabled leaver: 71 employee objects, 70 enabled, one disabled at the recorded inventory check. |
+| Access control | Department groups, AGDLP file permissions, and workstation logon GPOs. Tested own-department access, cross-department denial, and temporary read-only access. |
+| Hybrid identity | Connect Sync with Password Hash Synchronization. Verified hybrid join, device authentication, and Jamie's PRT. |
+| Cloud management | Jamie's Microsoft 365 access, Intune enrollment, compliance, login banner, and automatic Company Portal installation. |
+| Windows LAPS | Managed local `LabAdmin`, stored its password in AD, retrieved it as an administrator, tested its use, and rotated it. |
+| BitLocker | Intune required encryption; a GPO configured recovery backup. Verified C: fully encrypted, Protection On, and recovery records in AD and Entra. |
+
+One Windows client was reused for department tests. The final client is **HR-PC-01**, on the HR network, with **Jamie Morgan** as its Intune primary user.
+
+### Selected evidence
+
+- [Department DHCP scopes](resources/photos/14-AD-DHCP-scope.png) and [HR lease / AD DNS](resources/photos/15-jh_test-HRPC01-ipconfig.png)
+- [Cross-department share denied](resources/photos/03-cross-department-share-denied.png)
+- [Read-only access](resources/photos/16-readonly-nolan-read.png) and [write denied](resources/photos/17-readonly-save-denied.png)
+- [Intune login banner](resources/photos/09-intune-logon-banner.png) and [Company Portal Installed report](resources/photos/22-company-portal-installed-report.png)
+- [LAPS password stored in AD](resources/photos/23-laps-ad-backup-success.png)
+- [BitLocker fully encrypted / Protection On](resources/photos/24-bitlocker-encrypted.png) and [AD recovery record](resources/photos/25-bitlocker-ad-recovery-record.png)
+
+See the [Evidence Index](resources/photos/readme.md) for screenshot coverage and session-reported results.
+
+## Problems and solutions
+
+### 1. AD DNS failed after a network change
+
+The DC was using home-network DNS servers, so AD locator records could not resolve. I moved it to the isolated server network, assigned a static IP, and used the DC's DNS service with external forwarders. AD DNS and connectivity checks then passed.
+
+### 2. Cloud Sync timed out
+
+Cloud Sync on-demand provisioning failed even after DNS repair, endpoint checks, agent diagnostics, and reinstallation. I used Connect Sync to test the same AD and tenant. User synchronization and cloud sign-in worked, so Connect Sync became the working engine. The original Cloud Sync root cause remains unresolved.
+
+### 3. BitLocker policy success did not mean encryption success
+
+The client first detected the Windows installation ISO. After disconnecting it, recovery policy blocked AD backup. The corrected Intune recovery settings did not appear on the client. I kept Intune's encryption settings and applied recovery settings through an AD GPO. Encryption then reached 100% with Protection On.
+
+Full symptoms, approaches, reasons, and verification: [Problem-solving](ProblemSolving.md).
+
+## Limitations
+
+- VM resources limited the lab to one representative Windows client. Department tests were sequential; I did not test 70 concurrent devices.
+- VMware VMnets represent department networks. This is not an implemented 802.1Q trunk, and interdepartmental network ACLs are outside this version. File and logon denials are identity controls.
+- The DC also hosts DHCP and file shares. This reduces VM use but combines roles that could be separated in a larger deployment.
+- Voice, guest Wi-Fi, printers, and the simulated web server remain in the Packet Tracer design.
+- Cloud Sync's timeout and Intune's recovery-policy delivery issue were bypassed, not proven fixed. The working configuration is documented.
+- Backup and restore testing is excluded. BitLocker recovery-key storage is verified; a forced recovery boot is not.
+- The mover test passed by session report, but its account name and before/after evidence were not saved. Offboarding session revocation has no saved audit evidence. A final combined regression after the security changes has not been recorded.
 
 ## Documentation
 
-| Document | Purpose |
+| Document | Use |
 |---|---|
-| [How-to Guide](HowTo.md) | Repeatable setup and verification, with GUI steps for Windows administration |
-| [Company Specification](company-spec.md) | Addressing, NIC mapping, workforce baseline, identity, and policy scope |
-| [Integration Plan](integration-plan.md) | Acceptance results and remaining validation |
-| [Problems and Resolutions](ProblemSolving.md) | Evidence, failed approaches, recovery, and unresolved causes |
-| [October 31 Session Record](progress-2026-10-31.md) | Department networks, lifecycle tests, M365, hybrid join, and Intune |
-| [October 30 Session Record](progress-2026-10-30.md) | Historical setup and Connect Sync rollout |
-| [Evidence Index](resources/photos/readme.md) | Screenshots and the limits of each |
-| [AD Resources](resources/AD/readme.md) | Baseline CSV and original scripts |
-| [Network Resources](resources/Network/readme.md) | Fixed network source and implemented mappings |
+| [How-to](HowTo.md) | Build the working configuration, then verify each stage |
+| [Problem-solving](ProblemSolving.md) | What failed, why each approach was used, and what resolved it |
+| [Company specification](company-spec.md) | Address plan, workforce, interfaces, and policy scope |
+| [Scope and validation](integration-plan.md) | Delivered scope, exclusions, and evidence boundaries |
+| [November 1 record](progress-2026-11-01.md) | LAPS and BitLocker results |
+| [Evidence index](resources/photos/readme.md) | Available screenshots and what they prove |
+| [AD resources](resources/AD/readme.md) | Baseline CSV and provisioning scripts |
 
-Documentation and code comments are maintained in English. Windows configuration steps use the GUI where practical; terminal commands cover Ubuntu configuration and focused verification.
-
-## Project foundations
-
-| Foundation | Repository | Relationship to this integration |
-|---|---|---|
-| Network design | [Network Infrastructure Lab](https://github.com/junuiui/network-infrastructure-lab) | Fixed addressing/reference; original Packet Tracer files unchanged |
-| AD administration | [Active Directory Homelab](https://github.com/junuiui/homelab) | Original environment preserved; integration uses the separate jh.test AD |
-| Cloud administration | [M365, Entra & Intune Lab](https://github.com/junuiui/m365-entra-intune-lab) | Earlier cloud-only work retained; new workforce and hybrid client verified here |
-
-## Validation results and evidence
-
-| Area | Result | Evidence |
-|---|---|---|
-| Four department networks | DHCP, AD DNS, SMB, Internet connectivity, department GPOs, and share tests passed on one representative client | Four active DHCP scopes captured; test matrix in the October 31 session record |
-| Department authorization | Own-share file operations allowed; tested cross-department shares denied | Access-denied screenshots |
-| Read-only tier | Nolan could read HR data but not save changes, create, or delete; temporary access was revoked afterward | One read screenshot and three denied-operation screenshots; revocation: no screenshot captured |
-| Restart persistence | Six router interfaces, forwarding, five NAT rules, and Relay survived restart; HR DHCP/DNS, connectivity, and hybrid state rechecked | Router and client screenshots; resource and Intune rechecks: no screenshot captured |
-| Employee inventory | 71 employee objects: 70 enabled, one disabled (Emma) | ADUC Saved Query counts; inventory export not yet committed |
-| Workstation logon | Department GPOs applied as the representative PC moved between OUs | Logon-denied screenshot; department test records |
-| Joiner | Jamie created in AD, given HR access, synchronized, and signed in to the cloud | Later Jamie and Intune screenshots |
-| Mover | Engineering-to-HR access change tested and restored | Session result; test account name and before/after state not captured |
-| Leaver | Emma disabled in AD and Entra; new sign-ins blocked; HR access group removed; no assigned M365 license | Account and group screenshots; session revocation not yet confirmed |
-| Microsoft 365 | Jamie assigned Business Premium and opened Outlook on the web | No screenshot captured |
-| Hybrid join | DomainJoined YES, AzureAdJoined YES, device authentication SUCCESS, PRT YES | `dsregcmd` diagnostic output |
-| Intune enrollment | HR-PC-01 managed by Intune; primary user Jamie Morgan | Portal and successful client-sync screenshots |
-| Compliance | WIN-COMP-HR-Pilot reported Compliant | No screenshot captured |
-| Configuration delivery | Login banner appeared; profile IN-CONFIG-Pilot-LogonBanner reported Succeeded: 1, Error/Conflict: 0 | Client and portal screenshots below |
-| App delivery | Company Portal installed automatically, launched in the organization context, and reported Installed for HR-PC-01/Jamie | Installation notification, running app, and Intune device-install report |
-
-Rows marked "No screenshot captured" are results recorded in the session notes without a saved screenshot. Some evidence was reviewed during testing but is not committed to this repository; see the [Evidence Index](resources/photos/readme.md) for the available files.
-
-![Router interfaces and routes retained after restart](resources/photos/11-network1.png)
-
-![Nolan reads HR data under temporary read-only access](resources/photos/16-readonly-nolan-read.png)
-
-![Intune-delivered login banner on the client](resources/photos/09-intune-logon-banner.png)
-
-![Intune profile reports one successful device](resources/photos/10-intune-logon-banner-report.png)
-
-![Company Portal reports Installed for HR-PC-01](resources/photos/22-company-portal-installed-report.png)
-
-## Cloud Sync vs Connect Sync
-
-| | Cloud Sync | Connect Sync |
-|---|---|---|
-| Outcome | On-demand provisioning timed out; no successful pilot provisioning was verified | Identities synchronized; hybrid join and Intune enrollment worked on top of it |
-| Status | Disabled; root cause not confirmed | Working synchronization engine |
-
-Details of the Cloud Sync investigation are in [Problems and Resolutions](ProblemSolving.md).
-
-## Baseline and current identities
-
-The baseline CSV contains 70 synthetic employees: HR 8, Engineering 35, Sales-Marketing 22, IT 5.
-
-Jamie Morgan was added separately as the joiner. Emma Wilson remains retained but disabled as the leaver. ADUC Saved Queries confirmed **71 employee objects: 70 enabled and one disabled, Emma**. The original CSV is a baseline, not a current inventory export.
-
-The October 30 screenshot of 72 Entra directory objects is historical. The 71/70/1 counts are department-filtered AD employee counts, not a fresh total Entra count. A final inventory export has not been committed yet.
-
-## Current operating state
-
-- Windows client: HR-PC-01, Windows 11 Pro, HR/Computers OU, VMnet4, DHCP.
-- Device join: AD domain joined and Microsoft Entra hybrid joined.
-- Intune primary user: Jamie Morgan.
-- MDM user scope: All, intentionally retained in this lab. Enrollment GPO links and compliance/configuration assignments remain separately scoped. WIP scope: None.
-- Compliance pilot: SG-Intune-Pilot-Users, containing Jamie.
-- Configuration pilot: SG-Intune-Pilot-Devices, containing HR-PC-01.
-- Automatic Intune enrollment GPO: linked to HR/Computers.
-- Emma: disabled, in HR/Users; GG_HR_Users removed and Domain Users retained; no assigned M365 licenses. Session revocation and data disposition are not yet confirmed.
-- Cloud Sync: disabled; Connect Sync is the working synchronization engine.
-
-## Boundaries
-
-Packet Tracer and VMware share a company design; they are not physically connected. Separate VMnets represent department networks without claiming an implemented 802.1Q trunk. Voice, guest, Wi-Fi, printers, and the simulated web server remain Packet Tracer/design-only.
-
-One client was moved between networks and computer OUs. This verifies sequential functional behavior, not simultaneous multi-client operation or 70-client capacity. Network ACL isolation between departments has not been implemented; share and logon denials are identity controls.
-
-## Remaining work
-
-- Capture missing screenshots (Compliant status, M365 license assignment).
-- Confirm Emma's session revocation and any data-retention or hand-over requirements.
-- Commit a reproducible inventory export (AD employee counts, group nesting, tenant and license inventory).
-- Implement network ACLs: Packet Tracer ACL reference, then tested Ubuntu rules.
-- BitLocker/LAPS and backup/restore.
+The October 30–31 records remain as historical checkpoints. The current scope is defined here and in the scope document.

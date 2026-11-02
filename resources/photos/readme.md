@@ -1,6 +1,6 @@
 # Evidence Index
 
-[README](../../README.md) · [October 31 Record](../../progress-2026-10-31.md)
+[README](../../README.md) · [November 1 Record](../../progress-2026-11-01.md) · [October 31 Record](../../progress-2026-10-31.md)
 
 Screenshots are supplied by the lab owner. The table states what each image supports; account/file names alone are not proof of the active identity.
 
@@ -27,6 +27,10 @@ Screenshots are supplied by the lab owner. The table states what each image supp
 | [20 — Company Portal installed notification](20-company-portal-install-notification.png) | Intune software-distribution notification reports successful installation | Portal reporting verified separately |
 | [21 — Company Portal running](21-company-portal-running.png) | Organizational app session, HR-PC-01 and Can access company resources | Empty Available-app catalog does not indicate deployment failure |
 | [22 — Company Portal Installed report](22-company-portal-installed-report.png) | HR-PC-01/Jamie, Installed, version 11.2.2044.0 | Guest/portal timestamps are kept as captured |
+| [23 — LAPS AD backup success](23-laps-ad-backup-success.png) | Event 10018 states that LAPS updated AD with the new password | Retrieval/use and final rotation metadata were verified in the session; this image does not reveal a password |
+| [24 — BitLocker encrypted](24-bitlocker-encrypted.png) | C: Fully Encrypted, 100%, XTS-AES 128, Protection On; TPM and Numerical Password protectors | Not a forced recovery boot or compliance-policy result |
+| [25 — AD recovery record](25-bitlocker-ad-recovery-record.png) | msFVE-RecoveryInformation child record exists for HR-PC-01 | Recovery password is not retrieved; WhenCreated is blank because the original query did not request it |
+
 
 
 Numbering leaves space for additional evidence; no missing image file is referenced.
@@ -42,5 +46,7 @@ Numbering leaves space for additional evidence; no missing image file is referen
 - Inventory Saved Query counts confirmed by the owner: 71 employee objects / 70 enabled / one disabled. The exported inventory file is not committed.
 - Emma HR group removal and zero licenses are shown in chat screenshots, not committed here as separate images.
 - Final read-only membership cleanup/access revocation and HR client restoration are owner-reported; no final group export.
+
+November 1 transcript-only results: LAPS administrator retrieval/use and rotation metadata; Intune/Entra BitLocker key presence confirmed by the owner; GPO recovery values 1/1/1 and intermediate policy-delivery diagnostics. No cloud recovery-password image or post-security full-regression evidence is committed.
 
 No raw diagnostic archive, password, token, or private key is committed. Selected screenshots include normal lab tenant/device/user identifiers.

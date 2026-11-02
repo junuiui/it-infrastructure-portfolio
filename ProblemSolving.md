@@ -1,43 +1,41 @@
-# Problems and Resolutions
+# Problem-solving
 
-[README](README.md) · [How-to Guide](HowTo.md) · [Session Record](progress-2026-10-30.md)
+[README](README.md) · [How-to](HowTo.md) · [Evidence index](resources/photos/readme.md)
 
-Updated through October 31, 2026. This document separates symptoms, evidence, actions, and outcomes. A working recovery sequence is not presented as proof of the original root cause.
+Updated November 1, 2026. This document records the symptom, evidence, reason for each approach, change, and verification. Use the How-to for the final build sequence. A workaround is not a confirmed root cause.
 
-## 1. DC DNS and connectivity diagnosis failed
+## 1. DC DNS failed after switching to bridged networking
 
-**Symptoms:** dcdiag could not resolve the DC GUID under _msdcs.jh.test, reported no LDAP connectivity, invalid DNS servers, and missing DC record registration. The NIC was using a dynamic address and DNS servers 192.168.1.254 / 75.153.176.9.
+**Problem:** dcdiag could not resolve the DC GUID under _msdcs.jh.test. It reported no LDAP connectivity, invalid DNS servers, and missing DC records.
 
-**Action:** Put the DC on isolated VMnet3 at 192.168.1.2/28, use the actual router 192.168.1.1, point NIC DNS to the DC itself, configure external forwarders, and re-register host/DC records.
+**Evidence:** The DC had a dynamic address and used home-network DNS servers 192.168.1.254 and 75.153.176.9.
 
-**Verification:** Gateway Ping 4/4 and outbound TCP 443 succeeded. The owner reported DNS test passed. Full Advertising/Services/Connectivity results are not all archived.
+**Approach and reason:** Check the DC's address and DNS before changing provisioning. AD locator records must resolve through AD DNS; ordinary Internet access does not establish that.
 
-**Limit:** This fixed a real DNS misconfiguration but did not resolve Cloud Sync timeout.
+**Change:** Put the DC on isolated VMnet3 at 192.168.1.2/28, gateway 192.168.1.1, NIC DNS 192.168.1.2. Configure public resolvers as DNS forwarders and register the DC's DNS records.
 
-## 2. Cloud Sync on-demand timeout — unresolved
+**Verification:** Gateway ping and outbound TCP 443 passed. DNS passed by session report; later client SRV lookups returned the DC at 192.168.1.2.
 
-**Scope:** One pilot, CN=Emma Wilson,OU=Entra-Pilot,DC=jh,DC=test. The cloud configuration stayed disabled while on-demand was used. Agent version observed: 1.1.2507.0.
+**Boundary:** DNS repair did not resolve the separate Cloud Sync timeout. The complete original dcdiag transcript is not archived here.
 
-**Symptom:** The portal reported a target-response timeout. Provisioning logs remained empty across attempts. Agent service Running and portal Active did not prove successful user processing.
+## 2. Cloud Sync timed out — Connect Sync used instead
 
-### Investigation
+**Problem:** On-demand provisioning for the pilot user timed out. Portal provisioning logs stayed empty. Agent Running / Active did not demonstrate successful provisioning.
 
-| Approach | Observation / outcome |
-|---|---|
-| On-demand identifier | Initial ObjectGUID guidance was wrong; switched to Distinguished Name per Microsoft documentation, but timeout remained |
-| AD/DNS repair | DNS test subsequently passed; timeout remained |
-| General connectivity | DC could reach an external TCP 443 target |
-| Actual cloud endpoint | ServiceBus HTTPS HEAD returned an HTTP response without bypassing certificate validation; this does not test authenticated WebSocket traffic |
-| Proxy inspection | WinHTTP reported Direct access; other proxy/security paths were not fully excluded |
-| Agent restart | WebSocket failures continued |
-| Verbose diagnostic collection | Request arrived via Relay and ACK was returned; follow-up WebSocket connection failed |
-| Folder write issue | Created missing Endpoints directory, verified inherited gMSA rights and endpoints.txt creation; timeout remained |
-| Agent reinstall | Reinstalled and registered the agent; same timeout reported |
-| Connect Sync comparison | Same AD and tenant successfully synchronized the pilot and then all 70 employees |
+**Pilot:** CN=Emma Wilson,OU=Entra-Pilot,DC=jh,DC=test. Observed agent version: 1.1.2507.0. The Cloud Sync configuration was disabled while on-demand testing was used.
 
-### Decisive trace sequence
+| Approach | Why it was used | Result |
+|---|---|---|
+| Correct the on-demand identifier | Match the documented Distinguished Name input | Initial ObjectGUID guidance was corrected; timeout remained |
+| Repair AD DNS | Eliminate the known DC locator failure | DNS passed; timeout remained |
+| Test TCP 443 and actual cloud endpoints | Separate basic reachability/TLS from provisioning | An endpoint returned an HTTP response without bypassing certificate checks; authenticated WebSocket operation was not established |
+| Inspect WinHTTP proxy | Check the machine proxy path | Direct access reported; this did not exclude every intermediary |
+| Restart and collect verbose traces | Find whether requests reached the agent and where processing stopped | Relay request and ACK observed; follow-up WebSocket connection failed |
+| Create the missing Endpoints folder | Address a recorded local write/permission issue | Inherited gMSA access and endpoints.txt creation confirmed; timeout remained |
+| Reinstall/register the agent | Test whether installation/registration state explained the failure | Same timeout reported |
+| Test Connect Sync | Meet the identity objective through another supported sync path | Pilot, workforce synchronization, cloud sign-in and attribute update succeeded |
 
-On October 30, 2026, at approximately 11:24 AM America/Vancouver:
+The decisive trace sequence was:
 
 ```text
 Client request received via Relay
@@ -46,35 +44,21 @@ Establishing web socket connection (Timeout: 30000 ms)
 Web socket failed to connect
 ```
 
-Other errors included forced connection closure and ServiceBusClientWebSocket EOF. This rules out the blanket statement that no cloud request reached the agent. It does not identify which endpoint or intermediate component caused the later failure.
+Other traces included forced closure and ServiceBusClientWebSocket EOF. These show that a request reached the agent; they do not identify the failed intermediary or endpoint.
 
-### Additional local errors
+Local errors also mentioned pap_connector_lib.dll during event logger initialization, performance counters, and Endpoints access. Fixing the folder did not fix provisioning. The DLL message was not proven to cause the WebSocket timeout.
 
-```text
-Unable to load DLL 'pap_connector_lib.dll'
-Unable to initialize performance counters
-Access to ...\Provisioning Agent\Endpoints is denied
-```
+**Resolution for the project:** Disable Cloud Sync and stop its agent; use Connect Sync. Do not run both engines against overlapping users.
 
-The DLL error occurred in Event Viewer initialization. A search did not find that DLL under the installed agent directory. These observations do not establish that the DLL error caused the WebSocket timeout.
+**Unresolved:** The original timeout and empty portal logs. Double NAT, TLS inspection, gMSA binding and tenant-side failure were hypotheses, not findings. The timeout existed before the Ubuntu double-NAT setup. An HTTPS HEAD response is not a WebSocket test; an encrypted packet capture cannot directly show HTTP/WebSocket payloads without decryption.
 
-The Endpoints parent ACL granted the service gMSA inherit-only rights. After an administrator created the directory, its inherited ACL applied to the directory itself, and the agent saved endpoints.txt. The provisioning failure remained.
+## 3. Cloud Sync diagnostic commands were unavailable
 
-A sensor configuration fallback and disposal exceptions were also logged. They were not promoted to root-cause findings.
+**Problem:** Log export required authentication; authentication required MSAL.PS. A new shell did not recognize the commands.
 
-### Current decision
+**Approach and reason:** Load the agent's bundled utility in the same elevated PowerShell session. Use its prerequisite installer rather than assume the module is globally available.
 
-Keep Cloud Sync disabled and its service stopped. Use Connect Sync for the project. Do not run both engines against the same user population.
-
-Double NAT, TLS inspection, gMSA key binding, and a tenant backend issue remain hypotheses, not confirmed causes. The timeout predates the Ubuntu double-NAT setup. A TCP reset does not by itself prove a NAT failure. Encrypted packet capture cannot expose HTTP 101 or WebSocket payloads without appropriate decryption material.
-
-A Connect Sync success narrows the failure to a different execution path; it does not prove the exact Cloud Sync root cause or explain the empty portal logs.
-
-## 3. Diagnostic tools unavailable or not authenticated
-
-**Symptoms:** Export-AADCloudSyncToolsLogs required Connect-AADCloudSyncTools; authentication required missing MSAL.PS; a fresh shell did not recognize the commands.
-
-**Action:** Import the bundled module in the same elevated Windows PowerShell session, install the official prerequisites, authenticate, then collect verbose logs.
+**Change:**
 
 ```powershell
 Import-Module "C:\Program Files\Microsoft Azure AD Connect Provisioning Agent\Utility\AADCloudSyncTools" -ErrorAction Stop
@@ -84,127 +68,247 @@ Connect-AADCloudSyncTools
 Export-AADCloudSyncToolsLogs -TracingDurationMins 3
 ```
 
-**Verification:** Diagnostic ZIP was produced and analyzed. Collection began when the console displayed Capturing ... verbose log. The service-stop warnings preceded capture.
+**Verification:** A diagnostic archive was produced. The capture interval began at the Capturing verbose log message, after the service-stop warnings.
 
-## 4. ADSync module not found by short name
+This is the historical investigation procedure, not a requirement for the working Connect Sync build.
 
-**Symptom:** Import-Module ADSync failed, although the ADSync service was Running. Scheduler commands were consequently unavailable.
+## 4. ADSync service was running, but its module was not found
 
-**Action:** Import the installed module by full path in elevated Windows PowerShell:
+**Problem:** Import-Module ADSync failed, so scheduler commands were unavailable.
+
+**Approach and reason:** Distinguish a running service from PowerShell module discovery.
+
+**Change:** Import the installed module directly:
 
 ```powershell
 Import-Module "C:\Program Files\Microsoft Azure AD Sync\Bin\ADSync\ADSync.psd1" -ErrorAction Stop
 ```
 
-**Verification:** Scheduler output showed SyncCycleEnabled False, StagingModeEnabled False, and SyncCycleInProgress False before the pilot run.
+**Verification:** Scheduler commands worked. During pilot preparation the scheduler was disabled and staging mode was off. It was later enabled after workforce verification.
 
-## 5. Synced pilot could not sign in
+## 5. A synchronized pilot could not sign in
 
-**Evidence:** Emma existed in Entra with on-premises sync enabled. AD showed Enabled True, LockedOut False, and pwdLastSet 0.
+**Problem:** Emma existed in Entra, but initial cloud sign-in failed.
 
-**Action:** Cleared ChangePasswordAtLogon for Emma only and reset her AD password using secure input. Waited for password synchronization and retried cloud authentication.
+**Evidence:** AD Enabled True, LockedOut False, pwdLastSet 0.
 
-**Outcome:** The owner reported successful sign-in. This is consistent with temporary-password handling in Password Hash Synchronization. No exact original sign-in error code was captured, so the conclusion is limited to the observed state/action/outcome.
+**Approach and reason:** Check account/password state separately from object synchronization. A visible Entra object does not prove the password is ready for cloud authentication.
 
-**Limit:** This adjustment was not applied to all 70 users. Ordinary object sync and password hash sync are separate processes; repeated Initial cycles are not a password-sync fix.
+**Change:** For this pilot only, clear ChangePasswordAtLogon and reset the AD password using secure input. Allow Password Hash Synchronization to process and retry.
 
-## 6. Existing Intune client lacked usable administrator credentials — bypassed with a separate client
+**Verification:** Cloud sign-in succeeded by session report; the subsequent AD job-title update appeared in Entra.
 
-The earlier Win11-Intune VM was Entra joined, not AD joined. The local administrator password was unknown and a deleted cloud user remained listed as an administrator. The owner reported no available LAPS recovery password.
+**Boundary:** No original sign-in error code was retained. The observed state and recovery are consistent with temporary-password handling, not proof of every possible cause. No blanket reset of all employees was performed.
 
-Preserved that VM. Installed a separate Windows 11 Pro client, created LabAdmin, joined jh.test, and renamed it HR-PC-01. Its initial local-admin sign-in failed when Windows interpreted LabAdmin in domain JH. Explicit HR-PC-01\LabAdmin or .\LabAdmin selected the local account correctly.
+## 6. The old client had no usable administrator credentials
 
-The old machine's administrator recovery was not completed. The new client provided a working path for this integration.
+**Problem:** The earlier Intune VM was Entra joined, not AD joined. Its local administrator password was unknown, and a removed cloud user remained listed as an administrator.
 
-## 7. File ACL inspection versus functional authorization — tests completed
+**Approach and reason:** Preserve that project and build a separate client with a known administrative recovery path.
 
-October 30 supplied output confirmed SMB/NTFS configuration only. On October 31, standard employees tested department access from the domain client.
+**Change:** Install Windows 11 Pro, create local LabAdmin, join jh.test, and use HR-PC-01 for integration.
 
-Ava Collins (HR), Luke Fisher (ENG), Nora Green (SM), and Nolan Allen (IT) reported successful own-share file operations and the instructed cross-department denials. The same client was moved sequentially between department networks and computer OUs.
+**Verification:** Local administrator elevation and domain access worked.
 
-File names, a hidden share suffix, Access-Based Enumeration, or an ACL listing alone are not acceptance evidence. A missing network path and a wrong-password message are not successful authorization denials.
+**Related sign-in issue:** A bare LabAdmin name was interpreted in domain JH. Explicit HR-PC-01\\LabAdmin or .\\LabAdmin selected the local account.
 
-The HR Read tier was subsequently tested with Nolan: read allowed, shared-path write/create/delete denied; other department Read groups were not separately tested. Department group membership does not depend on a user being in that department's OU: Emma initially remained in Entra-Pilot but received HR access through GG_HR_Users. Computer-side logon GPOs followed the computer OU.
+**Boundary:** Administrator recovery on the original VM was not completed.
 
-## 8. Placeholder interface names left in Netplan and DHCP Relay — resolved
+## 7. File ACL configuration did not prove effective access
 
-**Symptoms:** Newly added ens39/ens40/ens41 interfaces remained unconfigured, while netplan generate/try accepted the YAML. Relay exited with status 1.
+**Problem:** Initial output listed correct SMB/NTFS permissions, but configuration alone did not demonstrate employee access.
 
-**Evidence:** Saved configuration still used ENG_NIC, SM_NIC, IT_NIC. These were illustrative placeholders, not interface names.
+**Approach and reason:** Test actual operations as ordinary users. A hidden share, ABE, or group name is not an access-control test.
 
-**Action:** Matched VMware network adapter MAC addresses to Ubuntu devices:
-- VMnet5 / MAC suffix :98 → ens39 → 192.168.0.1/26.
-- VMnet6 / :a2 → ens40 → 192.168.1.65/26.
-- VMnet7 / :ac → ens41 → 192.168.1.17/28.
+**Change:** Reuse the client sequentially with Ava Collins/HR, Luke Fisher/ENG, Nora Green/SM and Nolan Allen/IT. Test own-share file operations and unauthorized department shares.
 
-Updated both Netplan and Relay, applied configuration, and restarted Relay.
+**Verification:** Department operations and tested cross-department denials passed by session report. Saved images show representative resource access/denial.
 
-**Outcome:** Owner confirmed Relay active and all four department functional tests passed.
+**Boundary:** This proves identity-based share authorization, not network packet isolation. All shares are on the same DC/IP, so network ACLs cannot distinguish HR$ from ENG$ by share name.
 
-**Prevention:** Use the concrete verified mapping in the current How-to. Valid YAML does not prove a configured identifier matches a connected NIC. Do not add a default route to each internal interface.
+A user's OU did not grant access: Emma could access HR while still in Entra-Pilot because she belonged to GG_HR_Users. Workstation logon policies followed the computer OU.
 
-## 9. Default compliance policy showed 65001 — pilot policy evaluated
+## 8. Netplan accepted placeholder names, but Relay failed
 
-The overview badge showed Compliant while the default-policy report showed:
-- Has a compliance policy assigned: Error, 65001 (Not applicable).
-- Is active: Compliant.
-- Enrolled user exists: Compliant.
+**Problem:** New interfaces stayed unconfigured; isc-dhcp-relay exited with status 1 even though Netplan accepted the YAML.
 
-The only earlier explicit policy was WIN-COMP-Sales-Bitlocker. Created WIN-COMP-HR-Pilot with Firewall, Antivirus and Real-time protection required, assigned to SG-Intune-Pilot-Users.
+**Evidence:** The file still contained ENG_NIC, SM_NIC and IT_NIC placeholders.
 
-Owner reported the new policy Compliant. The old Sales policy and tenant-wide no-policy behavior were not weakened to manufacture a green result.
+**Approach and reason:** Match VMware adapter MAC addresses to real Linux device names. Valid YAML does not prove a NIC exists.
 
-**Limit:** The exact origin of default-policy 65001 and its separate final row status were not captured. Do not equate that row with failed BitLocker/antivirus checks. The new policy result does not establish HR drive encryption.
+**Change:**
 
-## 10. Login banner applied before portal report updated — resolved
+| VMware network | MAC suffix | Linux NIC | Gateway |
+|---|---|---|---|
+| VMnet5 / ENG | :98 | ens39 | 192.168.0.1/26 |
+| VMnet6 / SM | :a2 | ens40 | 192.168.1.65/26 |
+| VMnet7 / IT | :ac | ens41 | 192.168.1.17/28 |
 
-Created and assigned IN-CONFIG-Pilot-LogonBanner to SG-Intune-Pilot-Devices. Windows displayed the configured title and text, while the portal initially showed all result counts zero.
+Update both Netplan and Relay, apply, and restart Relay.
 
-Later screenshot:
+**Verification:** Relay became active. Department DHCP/connectivity tests passed; later restart screenshots showed all six router NICs, one default route, five NAT rules and active Relay.
+
+## 9. Compliance overview and policy details disagreed
+
+**Problem:** The device overview showed Compliant, while the default-policy row showed Has a compliance policy assigned / 65001 (Not applicable).
+
+**Approach and reason:** Inspect the assigned policy and per-setting result instead of treating an overview badge as proof. The existing WIN-COMP-Sales-Bitlocker policy was not an HR assignment.
+
+**Change:** Create WIN-COMP-HR-Pilot, requiring Firewall, Antivirus and Real-time protection, and assign it to SG-Intune-Pilot-Users.
+
+**Verification:** The owner reported Compliant for the HR policy.
+
+**Boundary:** The exact cause/final status of the earlier default row was not captured. The HR policy did not require BitLocker; its result was not evidence of encryption.
+
+## 10. The login banner appeared before its report updated
+
+**Problem:** Windows displayed the new banner while the Intune profile report showed all zero counts.
+
+**Approach and reason:** Compare the actual client result with the report before recreating a working policy.
+
+**Change:** Keep IN-CONFIG-Pilot-LogonBanner and allow reporting to update.
+
+**Verification:** The saved portal image later showed Succeeded 1, Error 0, Conflict 0. Both client display and policy report were captured.
+
+**Boundary:** A demonstrated reporting delay for this banner does not explain every later policy-delivery problem.
+
+## 11. Console syntax errors looked like verification failures
+
+**Problem:** PowerShell commands were entered in CMD with copied prompts/output. Later, cc# was pasted before a PowerShell comment.
+
+**Approach and reason:** Separate shell/input errors from service failures.
+
+**Change:** Open the correct PowerShell shell and copy only the command body.
+
+**Verification:** Network tests ran successfully. In the cc# case, the next registry command still executed; its output remained valid.
+
+## 12. The temporary HR Read test used the wrong membership path
+
+**Problem:** Nolan had the test Global group but could not open HR data. During troubleshooting the resource DL was added directly to the user.
+
+**Approach and reason:** Inspect the group chain rather than broaden the share ACL.
+
+**Change:**
+
 ```text
-Succeeded: 1
-Error: 0
-Conflict: 0
-Not applicable: 0
-In Progress: 0
+Nolan → GG-HR-ReadOnly_Test → DL_HR_Share_Read → SMB Read / NTFS RX
 ```
 
-This supports a reporting delay between Windows application and the profile's portal status update.
+Remove the direct DL grant. Add the Global group through the DL group's **Members** tab. Sign out/in to renew Nolan's token.
 
-## 11. Command Prompt and copied console output confused verification — corrected
+**Verification:** Named-user images showed read allowed and original-path save, create and delete denied. A local Save As copy is not a write to the protected share.
 
-PowerShell-only commands were entered in CMD together with copied C:\Users\LabAdmin> prompts/output. Those command errors were not network failures.
+**Cleanup:** Temporary access removal and return to HR/Computers with Jamie were reported successful. A final nested-membership export was not saved.
 
-Opened PowerShell and copied only the command body. Subsequent owner-reported SMB/HTTPS tests returned True.
+## 13. The employee LDAP filter had mismatched parentheses
 
-## 12. Read-only test required correct nested membership — corrected
+**Problem:** The enabled/disabled filter closed the outer AND expression too early.
 
-Nolan initially had the test Global group, but HR share access was denied. During troubleshooting, DL_HR_Share_Read was added directly to Nolan's Member Of list.
+**Approach and reason:** Keep the department OR expression and account-state test inside the same AND.
 
-Corrected the GUI workflow:
-- Remove the direct resource DL assignment from the user.
-- Open DL_HR_Share_Read Properties → Members.
-- Add the actual Global group GG-HR-ReadOnly_Test.
-- Renew Nolan's logon token through full sign-out/sign-in.
+**Change:** Use the corrected Saved Query filters in How-to section 17.
 
-Named-user screenshots then showed reading allowed and original-file save, create and delete denied. The screen must be the resource group's Members tab, not Nolan's Member Of tab. The final nested-member export was not supplied, so the evidence establishes effective permission outcomes.
+**Verification:** The owner confirmed 71 employee objects, 70 enabled and one disabled. These are live AD department counts, not total tenant objects or the original CSV count.
 
-Removed temporary access and restored the computer to HR/Computers with Jamie by owner report.
+## 14. Windows LAPS commands were missing on the DC
 
-## 13. Inventory query had an extra closing parenthesis — corrected
+**Problem:** Update-LapsADSchema and Set-LapsADComputerSelfPermission were not recognized.
 
-The first enabled/disabled LDAP filters closed the outer AND expression too early. Corrected filters are recorded in the How-to and AD resource index.
+**Evidence:** jh.test was at Windows2016Domain functional level; command availability, not domain level, was the first blocker.
 
-Owner confirmed 71 employee objects, 70 enabled and one disabled. Query results do not automatically create a repository inventory export.
+**Approach and reason:** Check Get-Module -ListAvailable LAPS and the standard module path before changing AD. Windows LAPS is delivered through Windows updates.
+
+**Change:** Update Windows Server 2022, then import LAPS.
+
+**Verification:** The module and both commands became available. Schema preparation and the scoped GPO proceeded.
+
+## 15. LabAdmin's old password stopped working; AD lookup also failed
+
+**Problem:** UAC rejected the old LabAdmin password. Get-LapsADPassword then returned supplied credential is invalid.
+
+**Evidence:** hostname / whoami showed HR-PC-01 and hr-pc-01\\labadmin. Later event 10018 explicitly confirmed the new password was stored in AD.
+
+**Approach and reason:** Separate local administrator identity from domain identity, and verify whether LAPS had already rotated the password. Local elevation does not grant LDAP authentication as a domain administrator.
+
+**Change:** Query LAPS on the DC as JH\\Administrator. Retrieve the current password privately and use it for HR-PC-01\\LabAdmin elevation.
+
+**Verification:** The owner successfully used the managed credentials. Reset-LapsPassword advanced the stored update time; DecryptionStatus was Success, with a 30-day expiry.
+
+**Conclusion:** Background LAPS processing explained the changed local credential state. The LDAP error occurred under a local account; it was not proof that AD password storage failed.
+
+No managed password is included in repository evidence.
+
+## 16. BitLocker silent encryption failed — resolved with split policy ownership
+
+### A. Installation media blocked encryption
+
+**Problem:** The event began Failed to enable Silent Encryption / TPM is not available, but its detailed error said bootable CD/DVD media was detected.
+
+**Evidence:** TPM reported ready and WinRE was enabled. C: was Fully Decrypted, 0%, no protectors.
+
+**Approach and reason:** Follow the specific error detail rather than clear or replace a ready TPM.
+
+**Change:** Disconnect the Windows ISO in VMware CD/DVD settings, clear Connect at power on, and restart Windows.
+
+**Verification:** The next failure changed to recovery-policy backup. Media removal cleared that observed blocker.
+
+### B. AD recovery backup was not allowed
+
+**Problem:** Event 851 reported that Group Policy prevented recovery-password backup to AD. Warning 778 said the volume reverted to an unprotected state.
+
+**Evidence:**
+
+```text
+OSActiveDirectoryBackup        = 0
+OSRequireActiveDirectoryBackup = 0
+OSRecoveryPassword             = 2
+```
+
+The initial guidance had disabled AD DS backup to target Entra storage. That was the wrong configuration for the chosen hybrid recovery workflow.
+
+**Approach and reason:** Inspect actual client policy values rather than infer them from an Intune Properties page.
+
+**Attempt:** Change Intune OS recovery settings to permit/require AD backup. The portal showed the new values, but the client retained the old values. The latest matching event 814 still contained the original false flags.
+
+### C. Corrected Intune recovery settings did not appear on the client
+
+**Attempts and observations:**
+
+| Approach | Reason | Observation |
+|---|---|---|
+| Local and remote Sync; restart | Give the changed policy a processing opportunity | No verified corrected recovery payload |
+| RSoP | Check whether a domain BitLocker GPO was overriding MDM | No BitLocker GPO shown at that stage; RSoP does not report Intune policy |
+| Remove/reapply the recovery setting | Try a fresh delivery of that setting | FVE policy path disappeared; it did not return with corrected values |
+| Separate IN-ENC-HR-Recovery profile | Test recovery delivery separately from encryption settings | Assignment report remained Pending; corrected client recovery setting was still absent |
+| Inspect client management state and logs | Distinguish transport/reporting from actual setting application | Local sync reported success, while portal check-in/reporting did not establish delivery |
+| Inspect PolicyManager | Check settings held by MDM | RequireDeviceEncryption 1, warning 0, standard-user encryption 1; SystemDrivesRecoveryOptions empty |
+
+A blank selected property does not independently prove every MDM processing detail. Combined with missing FVE policy values and no corrected recovery event, it showed that recovery-policy application had not been established. Repeated Sync and waiting did not supply new evidence.
+
+**Working change:** Remove the standalone recovery profile's device-group assignment. Leave recovery options Not configured in IN-ENC-HR-BitLocker. Keep its three encryption settings. Create **GPO-HR-BitLocker-Recovery**, linked to HR/Computers, and require a recovery password plus AD backup before enablement.
+
+**Verification:**
+
+1. gpupdate applied recovery values **1 / 1 / 1**.
+2. Intune management Sync was triggered with the encryption requirement still present.
+3. C: progressed through 95.3% to **Fully Encrypted, 100%, Protection On**.
+4. Algorithm: **XTS-AES 128**; protectors: TPM and Numerical Password.
+5. An AD msFVE-RecoveryInformation child record was returned; the owner confirmed a key in the Intune/Entra view.
+
+**Conclusion:** The working combination is **Intune encryption requirement + AD GPO recovery settings**. Intune was not fully replaced.
+
+**Unresolved:** Why the revised Intune recovery setting did not reach/apply to this client. This is not proof of a universal Intune limitation or a confirmed service defect. The final policy split is a workaround. No forced recovery boot or BitLocker noncompliance/Conditional Access test was performed.
 
 ## References
 
 - [Cloud Sync troubleshooting](https://learn.microsoft.com/en-us/entra/identity/hybrid/cloud-sync/how-to-troubleshoot)
-- [On-demand input format](https://learn.microsoft.com/en-us/entra/identity/hybrid/on-demand-provision)
+- [On-demand provisioning input](https://learn.microsoft.com/en-us/entra/identity/hybrid/on-demand-provision)
 - [AADCloudSyncTools](https://learn.microsoft.com/en-us/entra/identity/hybrid/cloud-sync/reference-powershell)
-- [Password hash sync troubleshooting](https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/tshoot-connect-password-hash-synchronization)
+- [Password Hash Synchronization](https://learn.microsoft.com/en-us/entra/identity/hybrid/connect/tshoot-connect-password-hash-synchronization)
 - [Device join-state interpretation](https://learn.microsoft.com/en-us/entra/identity/devices/troubleshoot-device-dsregcmd)
-
-- [Hybrid device registration and diagnostics](https://learn.microsoft.com/en-us/entra/identity/devices/troubleshoot-hybrid-join-windows-current)
-- [Compliance policy behavior](https://learn.microsoft.com/en-us/intune/device-security/compliance/overview)
-- [Netplan static interfaces](https://netplan.readthedocs.io/en/stable/examples/)
+- [Netplan examples](https://netplan.readthedocs.io/en/stable/examples/)
+- [Windows LAPS with AD](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-scenarios-windows-server-active-directory)
+- [Windows LAPS supported platforms](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview)
+- [Intune BitLocker](https://learn.microsoft.com/en-us/intune/device-configuration/endpoint-security/encrypt-bitlocker-windows)
+- [BitLocker CSP](https://learn.microsoft.com/en-us/windows/client-management/mdm/bitlocker-csp)
+- [BitLocker client troubleshooting](https://learn.microsoft.com/en-us/troubleshoot/mem/intune/device-protection/troubleshoot-bitlocker-policies)

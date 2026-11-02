@@ -1,138 +1,59 @@
-# Integration Plan
+# Scope and Validation
 
-[README](README.md) · [How-to Guide](HowTo.md) · [Company Specification](company-spec.md) · [October 31 Record](progress-2026-10-31.md)
+[README](README.md) · [How-to](HowTo.md) · [Problem-solving](ProblemSolving.md)
 
-## Objective and current result
+**Current scope: November 1, 2026.** This document replaces the earlier open-ended implementation roadmap. Historical session records retain the plans that existed at the time.
 
-Integrate the original network, AD, and M365 labs using one company model. Preserve the Packet Tracer baseline and original projects while recording actual integration evidence here.
+## Objective
 
-**Core functional integration completed on October 31, 2026.** Four department networks, identity/resource controls, lifecycle scenarios, cloud services, hybrid join, Intune enrollment, compliance, and one delivered configuration profile were tested. Expanded-router restart persistence, the HR client restart checks, employee counts and HR read-only acceptance have subsequently passed. Group/session/data records and the next implementation stages remain.
+Connect the existing Network Infrastructure, AD and M365 labs through one company design. Keep the Packet Tracer source and original homelab unchanged.
 
-## Original six-step roadmap
+## Delivered scope
 
-| Step | Result | Remaining boundary |
-|---|---|---|
-| 1. Align departments, workforce, and addresses | Original 70-person specification adopted | AD counts confirmed 71 objects / 70 enabled / one disabled; archival export still needed |
-| 2. Prepare AD pilot and validate AD/DNS | AD users, pilot, DNS repair, and connectivity verified | Full fresh DC health transcript not captured |
-| 3. Test sync and login before expansion | Connect Sync, pilot login, and title update passed | Original Cloud Sync timeout unresolved; investigation optional |
-| 4. Expand identity, groups, GPO, and shares | Four department roles, console restrictions, resource operations, and JML tested | HR Read tested; other Read groups and exhaustive access matrix remain |
-| 5. Implement network/DHCP/DNS | Four department data VMnets, routing, DHCP scopes, Relay and Internet tests passed | Router/HR restart checks passed; network ACLs not implemented |
-| 6. Integrate cloud services/endpoints | Jamie licensed/Outlook tested; hybrid join, Intune, compliance, banner and Company Portal deployment passed | Wider service/app coverage can be added separately |
-
-## Acceptance record
-
-### Network
-
-- [x] Preserve the Packet Tracer addressing baseline.
-- [x] Create server VMnet3 and upstream VMnet8 router path.
-- [x] Create HR/ENG/SM/IT data VMnets 4/5/6/7.
-- [x] Map Ubuntu interfaces by MAC and configure gateway addresses.
-- [x] Configure four Active Windows DHCP scopes with AD DNS.
-- [x] Relay DHCP to 192.168.1.2 and add outbound NAT.
-- [x] Test each department sequentially with the representative client.
-- [x] Return the client to HR/VMnet4 and confirm Ava sign-in.
-- [x] Reboot the expanded stack; capture all router interfaces, NAT, forwarding and automatic Relay startup; verify HR connectivity and hybrid identity.
-- [x] Capture the HR post-restart lease: 192.168.0.194/27, gateway 192.168.0.193, DHCP/DNS 192.168.1.2.
-- [ ] Archive exact ENG/SM/IT lease/export evidence if required; only their earlier functional tests were reported.
-
-### AD, workstation, and file access
-
-- [x] Create the baseline employees, department OUs, GG/DL resource groups and four shares.
-- [x] Retain a known local administrator on the new Windows 11 Pro client.
-- [x] Join HR-PC-01 to jh.test.
-- [x] Create four department computer OUs and scoped console-logon GPOs.
-- [x] Test own-department login/file operations and the instructed cross-department denials.
-- [x] Keep administrator console access available.
-- [ ] Capture final membership counts and nested group evidence after lifecycle changes.
-- [x] Test HR Read using Nolan: read allowed, original save/create/delete denied; cleanup and restoration owner-reported.
-- [ ] Extend Read testing to other departments only if needed for the final access matrix.
-
-### Employee lifecycle
-
-- [x] Joiner Jamie: AD creation, HR group/resource access, Entra sync and cloud sign-in.
-- [x] Mover: Engineering-to-HR attribute/OU/group change, access transition and restoration reported.
-- [x] Leaver Emma: disabled AD login, disabled Entra state and blocked new cloud sign-in.
-- [ ] Confirm whether Revoke sessions was executed.
-- [x] Remove Emma from GG_HR_Users, retain Domain Users and confirm zero current M365 licenses.
-- [ ] Confirm session revocation, retained-data disposition, and existing-session handling before claiming full offboarding.
-- [x] Confirm department-filtered AD employee counts: 71 objects, 70 enabled, one disabled (Emma).
-- [ ] Commit/archive the inventory export and reconcile total Entra/nonemployee objects separately.
-
-A disabled account is not proof that all existing sessions, permissions, licenses, or retained data were handled.
-
-### Hybrid identity and Microsoft 365
-
-- [x] Verify Connect Sync user flow and AD-to-Entra job-title update.
-- [x] Preserve Cloud Sync failure evidence and disable that engine for overlapping scope.
-- [x] Verify ADSync Running and object scheduler enabled at the session start.
-- [x] Include the client computer OU in device sync scope and configure hybrid join/SCP.
-- [x] Verify DomainJoined YES, AzureAdJoined YES, DeviceAuthStatus SUCCESS and Jamie PRT YES.
-- [x] Assign Jamie Business Premium and verify Outlook web access.
-- [ ] Save Jamie's license-assignment and Outlook evidence; current completion is documented from the session result.
-- [x] Inspect license snapshot: Emma has zero licenses; Business Premium available 23 of 25.
-- [ ] Capture total tenant inventory and the current scheduled-sync state.
-
-### Intune
-
-- [x] Verify Intune service/license, active tenant and MDM authority.
-- [x] Configure automatic MDM enrollment using User Credential.
-- [x] Retain final MDM scope All intentionally; WIP None.
-- [x] Confirm Intune portal device and Jamie primary user.
-- [x] Assign WIN-COMP-HR-Pilot and receive owner-reported Compliant result.
-- [x] Deliver IN-CONFIG-Pilot-LogonBanner to the device pilot group.
-- [x] Verify real Windows banner and final portal Succeeded 1 / Error 0 / Conflict 0.
-- [x] Verify required app delivery with Company Portal installed/running and the Intune Installed report.
-- [ ] Capture the WIN-COMP-HR-Pilot Compliant and per-setting results; the old default-policy row was not separately captured as cleared.
-
-MDM scope All is not a license assignment, an autoenrollment GPO link, or a compliance-policy assignment. Each is controlled separately.
-
-## Evidence follow-up
-
-The README now separates implementation, acceptance results and limits at the top. Its evidence table distinguishes saved screenshots/diagnostic output from session-reported outcomes.
-
-- [ ] Capture the missing HR compliance and Jamie Microsoft 365 screenshots.
-- [ ] Preserve the inventory export, final group nesting and tenant/license inventory.
-- [ ] Confirm Emma's session revocation and data disposition.
-- [ ] For any future mover test, record the account identity and before/after state at execution time; do not invent retrospective evidence.
-
-## Closeout order
-
-1. Preserve evidence and update English docs/GUI How-to — this update.
-2. Clean shutdown/startup and HR client validation completed; retain evidence without rolling back joined-device snapshots.
-3. Router/interfaces/scopes, HR DHCP/DNS/connectivity and hybrid state verified; resource and Intune checks owner-reported healthy. Broader DC/scheduler exports can be archived separately.
-4. Employee query counts confirmed; archive exports and final memberships.
-5. Emma HR access-group removal and zero licenses confirmed; verify session/data steps.
-
-No percentage is assigned: acceptance results and limits are more useful than a blended completion number.
-
-## Next implementation stages — approved for follow-up
-
-- [x] Company Portal via Microsoft Store app (new), Required to SG-Intune-Pilot-Devices: installation notification, organizational app launch and Intune Installed report verified; version 11.2.2044.0.
-- [ ] Interdepartmental network ACLs based on the fixed PT design, with representative reachability tests and administrator recovery.
-- [ ] HR BitLocker, recovery-key escrow and LAPS validation.
-- [ ] Backup and restore validation.
-- [x] HR read-only access and temporary-access restoration test.
-- [ ] Larger access matrix if needed.
-- [ ] Extend voice, guest and Wi-Fi implementation from the fixed PT design, with explicit acceptance checks and documented platform limitations.
-- Further Cloud Sync root-cause analysis remains optional.
-
-The owner requested completion of the remaining work after the core integration. Implement these stages sequentially and retain acceptance evidence. None is marked complete before testing. Further Cloud Sync investigation remains optional because Connect Sync already meets the identity objective.
-
-## Next session and time estimate
-
-Resume with the fixed Packet Tracer ACL reference, a service-access matrix and a rollback plan. Follow with HR BitLocker/key escrow, LAPS, and an actual restore test.
-
-| Remaining stage | Planning estimate |
+| Area | Recorded result |
 |---|---|
-| ACL design, rules and allow/deny tests | 1.5–3 hours |
-| HR BitLocker/recovery-key and LAPS validation | 2–3 hours |
-| Backup and restore acceptance | 1.5–3 hours |
-| Final inventory/session/data checks and documentation | 0.5–1 hour |
+| Four data networks | HR, Engineering, Sales-Marketing, IT; Windows DHCP, AD DNS, Ubuntu Relay/NAT; sequential department tests passed |
+| AD workforce | 70 baseline CSV users; Jamie added; Emma retained disabled; last confirmed employee counts 71 / 70 enabled / 1 disabled |
+| Authorization | Department AGDLP shares and logon GPOs; own-share and cross-department tests; HR read-only test |
+| Lifecycle | Joiner passed; mover change/restoration reported without saved identity/before-after evidence; leaver disabled and department access removed |
+| Hybrid identity | Connect Sync/PHS, AD-to-Entra attribute test, hybrid device join, successful device authentication and Jamie PRT |
+| Microsoft 365 | Jamie licensed and Outlook web access reported successful |
+| Intune | Enrollment, primary user Jamie, HR compliance, login banner and Company Portal delivery |
+| Windows LAPS | AD password backup, authorized retrieval/use and rotation verified November 1 |
+| BitLocker | Intune encryption plus GPO recovery; C: 100%, Protection On; AD/Entra recovery records verified November 1 |
 
-Primary closeout: approximately 5.5–10 hours, subject to dependencies. Guest/Wi-Fi/voice implementation is additional scope and is excluded from that estimate. An eight-hour session can make substantial progress, but completion is not guaranteed.
+## Final management boundaries
 
-## Reporting rules
+- GPO-HR-Windows-LAPS: HR/Computers; existing local LabAdmin; AD backup, encrypted storage, length 20, age 30 days.
+- IN-ENC-HR-BitLocker: SG-Intune-Pilot-Devices; encryption requirement, warning suppression, standard-user enablement only.
+- GPO-HR-BitLocker-Recovery: HR/Computers; recovery password and AD backup required before encryption.
+- IN-ENC-HR-Recovery: no device pilot assignment in the final configuration.
+- Existing HR compliance policy checks Firewall, Antivirus and Real-time protection. Its green result is not a BitLocker compliance test.
+- MDM scope All remains intentional; enrollment GPOs and policy groups remain scoped independently.
 
-Documentation and comments remain English. Distinguish screenshots/output, owner-reported outcomes, inferred counts, and pending checks. Prefer GUI for Windows administration. Preserve baseline CSV/scripts and historical records.
+## Excluded from this version
 
-Do not claim direct Packet Tracer-to-VMware connectivity, 802.1Q implementation, network packet isolation from file-permission denials, all-user testing, or a proven cause for the original Cloud Sync failure.
+- Backup/restore implementation and restore testing, removed from scope by the owner.
+- Interdepartmental network ACL implementation.
+- Additional Windows client VMs and concurrent 70-device capacity testing.
+- VMware deployment of the Packet Tracer voice, guest/Wi-Fi, printer and web services.
+- Forced BitLocker recovery boot, encryption suspension/noncompliance and Conditional Access blocking.
+- Further Cloud Sync or Intune recovery-policy root-cause investigation.
+
+These are boundaries, not required tasks blocking this version.
+
+## Evidence and closeout boundaries
+
+The final combined regression after the November 1 security changes has not been recorded. The How-to ends with the repeatable check matrix.
+
+Existing results must not be expanded into untested claims:
+- The mover account identity and before/after evidence were not saved.
+- Temporary read-only cleanup was reported; no final membership export was committed.
+- Emma's session revocation was instructed, but no explicit execution/audit evidence was supplied. Data retention is not established by zero assigned licenses.
+- Final employee/tenant/group inventory exports and some cloud/compliance screenshots are not committed.
+- LAPS retrieval/use was tested before the final rotation; the new metadata confirms rotation, not a separately recorded second credential-use test.
+- BitLocker directory records exist; a forced recovery boot and saved matching-ID evidence across both directories were not supplied.
+
+## Current documents
+
+README is the recruiter-facing overview. How-to is the working build/runbook. Problem-solving preserves investigation decisions and unresolved causes. Company Specification holds the addresses and policy scopes. November 1 is the latest security checkpoint; October 30–31 records are historical.

@@ -2,11 +2,50 @@
 
 [README](README.md) · [Company Specification](company-spec.md) · [Problems and Resolutions](ProblemSolving.md) · [October 31 Record](progress-2026-10-31.md)
 
-This staged runbook covers the October 30–31 integration. Windows administrative changes use the GUI where practical; Ubuntu and focused verification use terminal commands. Do not rerun historical provisioning/recovery steps against the completed environment.
+This guide builds the working lab configuration recorded through November 1, 2026. Use the Windows GUI for configuration, Ubuntu terminal commands for routing, and PowerShell for focused preparation and verification. Fresh-build steps are for a new lab; do not recreate existing users, shares, or domain services.
 
-**Current checkpoint:** Four department data networks, workstation/file authorization, joiner/mover/leaver scenarios, Jamie's M365 access, hybrid join, Intune enrollment, HR compliance and login-banner delivery have passed the recorded tests. HR-PC-01 is back on HR/VMnet4. Remaining closeout is in section 16.
+**Working configuration:** four department networks, AD groups/shares/logon GPOs, Connect Sync, a hybrid-joined Intune client, Microsoft 365 access, Company Portal, Windows LAPS, and BitLocker. HR-PC-01 is on HR/VMnet4. Backup/restore and network ACLs are excluded from this version.
 
-Use elevated Windows PowerShell on the indicated Windows machine and sudo on Ubuntu. Store passwords securely.
+## 0. Prerequisites and build order
+
+### Machines and access
+
+| Machine | OS / purpose | Networking |
+|---|---|---|
+| lab-router | Ubuntu Server 24.04 LTS; routing, NAT, DHCP Relay | Six NICs mapped in section 2 |
+| DC | Updated Windows Server 2022; AD DS, DNS, DHCP, file shares, Connect Sync | VMnet3 |
+| HR-PC-01 | Updated Windows 11 Pro; domain/hybrid join and Intune | VMnet4 after initial domain join |
+
+Use VMware Workstation with Virtual Network Editor access. Windows 11 needs compatible UEFI/vTPM settings. Keep the VM encryption password in a password manager. It is separate from every Windows account.
+
+Match CPU/RAM allocation to the host; this guide does not claim a measured minimum for running all services. The lab uses one representative client, not one VM per employee. Download supported Windows/Ubuntu installation media from their publishers.
+
+Use an Entra tenant with permission to configure Connect Sync and hybrid join, and valid Intune/Entra automatic-enrollment entitlement for the pilot. This lab used Microsoft 365 Business Premium for Jamie. Replace `junuihonglab.onmicrosoft.com` with your own verified tenant domain throughout a fresh build.
+
+Before user sync, inspect existing cloud accounts for UPN conflicts. Use a dedicated lab tenant or reconcile existing identities; deleting cloud users is not a prerequisite.
+
+### Order
+
+1. Create VMnets and the Ubuntu router, including its upstream route.
+2. Install Windows Server, set the server IP, and create the AD forest/DNS.
+3. Create employee accounts and the pilot OU; configure Connect Sync.
+4. Create groups, shares, computer OUs and logon GPOs.
+5. Install/join the client, create DHCP scopes and Relay, and test department roles.
+6. Test lifecycle scenarios, Microsoft 365, hybrid join, and Intune.
+7. Configure LAPS and the final BitLocker policy split.
+8. Run the final verification matrix.
+
+Use elevated **64-bit Windows PowerShell** on the named machine and `sudo` on Ubuntu. Copy commands without console prompts. Never commit passwords, recovery passwords, or diagnostic tokens.
+
+| Task | Where / identity |
+|---|---|
+| AD/schema/group/GPO management | DC, authorized domain administrator; schema extension requires Schema Admin rights |
+| LAPS password retrieval | DC, authorized Domain Admin for this lab |
+| Client configuration | HR-PC-01, elevated local/domain administrator |
+| User PRT, shares and cloud access | HR-PC-01, ordinary Jamie/department user session |
+| Router configuration | Ubuntu, labadmin with sudo |
+
+A local `HR-PC-01\\LabAdmin` administrator is not an AD administrator. After LAPS applies, retrieve its current password from AD before using it for elevation.
 
 ## 1. VMware networks
 
@@ -37,6 +76,32 @@ The host LAN overlaps the internal subnet. Do not bridge the DC onto the physica
 | ens41 | VMnet7 IT | 192.168.1.17/28 | None |
 
 Upstream DNS: 1.1.1.1 and 8.8.8.8. Configure one default route through ens33. Check interface names before reusing these commands.
+
+### Base router configuration on a fresh VM
+
+Install Ubuntu Server with hostname `lab-router` and a local administrative account. Map the first two NICs to VMnet8 and VMnet3. At the VMware console, inspect `ip -br link`; the observed names below are not universal.
+
+Edit the existing installer Netplan file under `/etc/netplan`. Replace conflicting definitions instead of adding a second default route. The base configuration for this router is:
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    ens33:
+      dhcp4: false
+      addresses: [10.0.0.10/24]
+      nameservers:
+        addresses: [1.1.1.1, 8.8.8.8]
+      routes:
+        - to: default
+          via: 10.0.0.2
+    ens34:
+      dhcp4: false
+      addresses: [192.168.1.1/28]
+```
+
+Restrict the edited YAML to root (`sudo chmod 600 /etc/netplan/<actual-file>.yaml`), run `sudo netplan generate` and `sudo netplan try`, then accept at the console if the addresses/route are correct. Section 10 adds the four department interfaces.
+
 
 ```bash
 ip -br -4 addr
@@ -83,6 +148,21 @@ On WIN-9TRC5DR3JHV:
 | Preferred NIC DNS | 192.168.1.2 |
 | Alternate NIC DNS | Blank |
 
+### Fresh forest setup
+
+First install Windows Server 2022 with Desktop Experience and set the address above through `ncpa.cpl` → Ethernet Properties → IPv4. Choose a server name before promotion. The recorded server name is WIN-9TRC5DR3JHV; a new VM may use another name, which must be substituted in later UNC/DNS commands.
+
+1. Server Manager → Manage → Add Roles and Features → Role-based installation.
+2. Select Active Directory Domain Services and its management tools → Install.
+3. Notification flag → Promote this server to a domain controller.
+4. Add a new forest: `jh.test`.
+5. Keep DNS Server and Global Catalog enabled; enter and securely store a DSRM password.
+6. Review paths/prerequisite results and install; the server restarts.
+7. Sign in as `JH\\Administrator` and confirm DNSRoot `jh.test`. Install current Windows updates. The recorded domain functional level is Windows2016Domain.
+8. Verify the NIC's preferred DNS is still 192.168.1.2.
+
+This is a new, isolated forest, not a modification of the original homelab. Do not repeat promotion on an existing DC.
+
 In DNS Manager, configure forwarders 1.1.1.1 and 8.8.8.8. Public resolvers are forwarders, not alternate NIC DNS for this DC or AD client.
 
 ```powershell
@@ -102,7 +182,7 @@ ping 192.168.1.1
 Test-NetConnection 1.1.1.1 -Port 443
 ```
 
-The owner reported DNS passed and supplied successful gateway/TCP 443 output. Capture the broader DC health results at the next checkpoint.
+Recorded result: DNS passed, gateway/TCP 443 succeeded. A fresh build must also review the full dcdiag output; the original full DC-health transcript is not archived.
 
 ## 4. Employee accounts and UPNs
 
@@ -159,6 +239,14 @@ This CSV-scoped check should still find the original 70 distinct accounts, inclu
 Emma was initially in Entra-Pilot. New evidence shows her in HR/Users; she remains disabled for the leaver test. Retained users remain within sync scope. Use Ava/Jamie for current HR access tests.
 
 ## 5. Connect Sync
+
+### Prepare the pilot on a fresh build
+
+ADUC → jh.test → New → Organizational Unit → `Entra-Pilot`. Move the existing Emma Wilson account into it for the initial test. Keep her HR Department attribute and tenant-suffix UPN. The baseline script sets ChangePasswordAtLogon; complete/change the password through an authorized domain workflow before cloud sign-in, or use the explicitly documented pilot-only secure reset below.
+
+Do not repeat the move or re-enable Emma in the completed lab. She is retained disabled in HR/Users. A new deployment may instead use a separate named pilot and substitute it consistently.
+
+Cloud Sync is not a prerequisite for this working build. Install the current supported Microsoft Entra Connect Sync release from Microsoft's official download path. Complete its OS/.NET/connectivity prerequisites before running the wizard.
 
 Cloud Sync timeout is unresolved. Its configuration is disabled and its agent stopped. Do not re-enable that engine against the same user population.
 
@@ -243,7 +331,9 @@ AGDLP: Account → Global Security Group → Domain Local Security Group → Per
 | Sales-Marketing | GG_SM_Users | 22 | DL_SM_Share_Modify | DL_SM_Share_Read |
 | IT | GG_IT_Users | 5 | DL_IT_Share_Modify | DL_IT_Share_Read |
 
-Place groups under the respective department OU. Add employees by Department, including Emma outside the HR OU. Nest each department GG in its Modify DL. HR Read was subsequently tested using the temporary GG-HR-ReadOnly_Test group, then cleaned up; see section 18.
+On a fresh build, ADUC → department OU → New → Group. Create each GG as Global/Security and each DL as Domain Local/Security. Open the GG's Members tab and add that department's employees. Open the Modify DL's Members tab and add its GG. Leave Read DLs empty until a read-only role is needed.
+
+At the original build stage Emma was in Entra-Pilot but belonged to the HR group; membership, not user OU location, granted access. In the final state she is disabled with HR membership removed. HR Read was tested with GG-HR-ReadOnly_Test and then cleaned up; see section 18.
 
 The owner progressed through setup; final direct membership output is not archived. Verify before client tests:
 
@@ -742,7 +832,7 @@ Intune → Devices → Compliance → Create policy:
 
 The owner reported Compliant for this policy. Compliance evaluates state; it does not itself turn on each protection. This result does not certify drive encryption.
 
-An initial Default Device Compliance Policy row showed Has a compliance policy assigned / Error 65001, while active/enrolled-user checks passed. That was investigated separately from actual security settings. The tenant-wide no-policy behavior was not changed to force green status.
+The final recorded HR policy result was Compliant. This policy checks Firewall, Antivirus and Real-time protection; it does not require BitLocker. Keep encryption verification separate unless you explicitly add and test a BitLocker compliance requirement.
 
 ## 15. Intune login-banner configuration
 
@@ -895,7 +985,229 @@ Verified version: 11.2.2044.0. The app displayed JUNUI HONG LAB, HR-PC-01 and Ca
 
 Acceptance was confirmed through the client installation notification, live app and Intune Installed report. Creating an app object or assigning a group alone would not have met this check.
 
-After this, continue the approved ACL, BitLocker/LAPS, backup/restore and additional network stages in the integration plan.
+Continue with the LAPS and BitLocker sections below. Network ACLs, additional Packet Tracer service deployment, and backup/restore are outside this version.
+
+
+## 20. Windows LAPS — AD password backup
+
+**Verified on November 1:** policy application, AD backup event 10018, administrator retrieval, actual use of the managed LabAdmin credentials, and password rotation. LAPS manages the client local account, not JH\\Administrator.
+
+### Prepare the DC and account
+
+1. On HR-PC-01, Computer Management → Local Users and Groups → Users: confirm local `LabAdmin` exists and is enabled. Under Groups → Administrators confirm it is an administrator. Do not create a second account with the same purpose.
+2. Keep an authorized domain administrator path available while LAPS rotates the local password.
+3. On the DC, install current Windows updates and restart if requested. This Server 2022 needed an update before the LAPS module appeared. Do not install legacy Microsoft LAPS or use PowerShell Gallery as a substitute.
+4. In DC administrator PowerShell:
+
+```powershell
+Import-Module LAPS -ErrorAction Stop
+Get-Command Update-LapsADSchema, Set-LapsADComputerSelfPermission
+Get-ADDomain | Select-Object DNSRoot, DomainMode
+
+# One-time forest schema extension; use an authorized schema administrator.
+Update-LapsADSchema -Verbose
+
+# Limit computer self-write permission to the client OU.
+Set-LapsADComputerSelfPermission -Identity "OU=Computers,OU=HR,DC=jh,DC=test"
+```
+
+Review schema changes before applying them. VM snapshots are lab checkpoints, not independent AD backups. This project's backup/restore testing is excluded.
+
+### Configure the GPO
+
+On the DC, Group Policy Management → HR/Computers → create and link **GPO-HR-Windows-LAPS**.
+
+Edit Computer Configuration → Policies → Administrative Templates → System → LAPS:
+
+| Setting | Value |
+|---|---|
+| Configure password backup directory | Enabled → Active Directory |
+| Name of administrator account to manage | Enabled → LabAdmin |
+| Password Settings | Enabled; length 20; age 30 days; uppercase, lowercase, numbers, special characters |
+| Enable password encryption | Enabled |
+| Other settings | Not configured |
+
+Use the existing local account; automatic account creation was not configured. The domain functional level is 2016, which supports encrypted AD password storage. For this lab, default Domain Admin read/decrypt access is retained; no helpdesk delegation is claimed. Do not grant password-read permission to ordinary employee groups.
+
+### Apply and verify
+
+On HR-PC-01, elevated PowerShell:
+
+```powershell
+gpupdate /target:computer /force
+Invoke-LapsPolicyProcessing -Verbose
+```
+
+Policy can also process in the background before you run these commands. The previous LabAdmin password may already be replaced.
+
+Event Viewer → Applications and Services Logs → Microsoft → Windows → LAPS → Operational: look for event **10018**, successful AD password update.
+
+On the **DC**, as the authorized domain administrator:
+
+```powershell
+# Display metadata without revealing the password.
+Get-LapsADPassword -Identity "HR-PC-01" |
+    Select-Object ComputerName, Account, PasswordUpdateTime,
+        ExpirationTimestamp, DecryptionStatus, AuthorizedDecryptor
+```
+
+Expected: Account LabAdmin, a recent update time, a 30-day expiry, and DecryptionStatus Success.
+
+For a private local credential test only:
+
+```powershell
+# Do not capture, paste, or commit this output.
+Get-LapsADPassword -Identity "HR-PC-01" -AsPlainText |
+    Select-Object Account, Password
+```
+
+While Jamie is signed in on HR-PC-01, run PowerShell as administrator. In UAC select More choices → Use a different account → `HR-PC-01\\LabAdmin` and the retrieved password. Verify `whoami` shows the local managed account.
+
+In that elevated client shell:
+
+```powershell
+Reset-LapsPassword
+```
+
+Query metadata again on the DC. Verify PasswordUpdateTime advances and DecryptionStatus remains Success. The recorded rotation updated the password on November 1 and set expiry to December 1. The session verified use before this final rotation; a second credential-use test after rotation was not separately recorded.
+
+## 21. BitLocker — Intune encryption with GPO recovery settings
+
+This is the final working configuration. Do not reproduce the failed Intune-only recovery-policy experiment as a build requirement.
+
+| Responsibility | Management source |
+|---|---|
+| Require device encryption; allow silent standard-user encryption | Intune IN-ENC-HR-BitLocker |
+| Require recovery password and AD backup before enablement | GPO-HR-BitLocker-Recovery, HR/Computers |
+| Recovery storage verification | AD computer recovery record and Entra/Intune recovery-key view |
+
+### Prepare HR-PC-01
+
+1. VMware → HR-PC-01 Settings → CD/DVD: clear **Connected** and **Connect at power on** for installation media. Restart Windows if media was connected.
+2. `tpm.msc`: confirm TPM ready for use.
+3. `msinfo32`: inspect UEFI/Secure Boot state. Verify suitable VM firmware/vTPM configuration before enabling encryption; do not change firmware or clear TPM after encryption.
+4. Elevated client PowerShell:
+
+```powershell
+# These commands do not display recovery passwords.
+reagentc /info
+manage-bde -status C:
+```
+
+WinRE must be enabled for this silent-encryption flow. The observed initial drive state was Fully Decrypted, 0%, no protectors. If already encrypted, inspect existing policy/recovery storage instead of decrypting it to repeat the lab.
+
+### Apply recovery policy first
+
+If reproducing the earlier experiment, remove **SG-Intune-Pilot-Devices** from the standalone **IN-ENC-HR-Recovery** policy. In IN-ENC-HR-BitLocker leave the OS recovery setting Not configured. Do not configure the same recovery setting through both Intune and GPO.
+
+On the DC, create/link **GPO-HR-BitLocker-Recovery** at **HR/Computers**.
+
+Edit Computer Configuration → Policies → Administrative Templates → Windows Components → BitLocker Drive Encryption → Operating System Drives → **Choose how BitLocker-protected operating system drives can be recovered**:
+
+| Setting | Value |
+|---|---|
+| Main policy | Enabled |
+| Allow data recovery agent | Unchecked |
+| 48-digit recovery password | Require recovery password |
+| 256-bit recovery key | Do not allow recovery key |
+| Omit recovery options from the BitLocker setup wizard | Checked |
+| Save BitLocker recovery information to AD DS | Checked |
+| Storage | Backup recovery passwords and key packages |
+| Do not enable BitLocker until recovery information is stored to AD DS | Checked |
+
+Leave unrelated startup PIN/key settings Not configured.
+
+On the client:
+
+```powershell
+gpupdate /target:computer /force
+
+Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\FVE" |
+    Select-Object OSActiveDirectoryBackup,
+        OSRequireActiveDirectoryBackup, OSRecoveryPassword
+```
+
+Require **1 / 1 / 1** before proceeding. Confirm the DC is reachable. If these differ, inspect GPO scope/results rather than manually editing the registry.
+
+### Configure Intune encryption
+
+Intune → Endpoint security → Disk encryption → Create Policy:
+
+- Platform: Windows / Windows 10 and later.
+- Profile: BitLocker.
+- Name: **IN-ENC-HR-BitLocker**.
+- Require Device Encryption: **Enabled**.
+- Allow Warning For Other Disk Encryption: **Disabled**.
+- Allow Standard User Encryption: **Enabled**.
+- Other settings, including OS recovery options: **Not configured**.
+- Scope tags: Default.
+- Included group: **SG-Intune-Pilot-Devices** containing HR-PC-01.
+- Review and create.
+
+Suppressing the other-encryption warning is appropriate here because the lab client has no third-party Windows disk-encryption product. VMware's VM encryption for vTPM is a separate layer.
+
+### Trigger and verify
+
+Keep Ubuntu and the DC running. Sign in as Jamie. Settings → Accounts → Access work or school → management connection → Info → Sync.
+
+Use Windows PowerShell as administrator:
+
+```powershell
+manage-bde -status C:
+```
+
+Expected final result:
+
+```text
+Conversion Status: Fully Encrypted
+Percentage Encrypted: 100.0%
+Encryption Method: XTS-AES 128
+Protection Status: Protection On
+Key Protectors: Numerical Password, TPM
+```
+
+A portal policy result of Succeeded alone is not encryption acceptance. On failure, read Event Viewer → Microsoft → Windows → BitLocker-API → Management. Do not repeatedly change policy while old reports are pending.
+
+### Verify recovery storage without exposing keys
+
+Intune → Devices → All devices → HR-PC-01 → BitLocker recovery keys. Confirm a record exists. If inspecting the key, keep the 48-digit value out of screenshots and repository files.
+
+On the DC:
+
+```powershell
+# Check AD recovery records without retrieving their recovery passwords.
+$computer = Get-ADComputer "HR-PC-01"
+Get-ADObject -SearchBase $computer.DistinguishedName -SearchScope OneLevel `
+    -LDAPFilter "(objectClass=msFVE-RecoveryInformation)" `
+    -Properties WhenCreated |
+    Select-Object Name, WhenCreated
+```
+
+Record existence was verified in AD, and the owner confirmed a key in the Intune/Entra view. For a new build, compare the recovery key ID across the device/directory views without publishing the recovery password.
+
+No forced BitLocker recovery boot or noncompliance/Conditional Access block test was performed. The existing HR compliance policy does not check BitLocker.
+
+## 22. Final verification and evidence
+
+This is a repeatable acceptance checklist. Earlier sections state the results already recorded; a fresh combined regression after November 1 security changes has not been supplied.
+
+| Check | Where / method | Expected |
+|---|---|---|
+| Router | ip -br -4 addr; routes; forwarding; NAT; Relay | Six NICs, one default route, forwarding 1, five NAT rules, Relay active |
+| DC/DNS | dcdiag, AD SRV lookup, DHCP console | Review test results; four active data scopes |
+| Sync | ADSync service/scheduler and Synchronization Service Manager | Running, scheduler enabled, successful relevant exports |
+| Client | ipconfig /all; DNS/SMB/HTTPS checks from section 16 | HR lease, AD DNS, working server and outbound access |
+| Hybrid identity | dsregcmd /status as Jamie, not elevated as another account | Both joins YES, DeviceAuthStatus SUCCESS, AzureAdPrt YES |
+| Authorization | Jamie own-share file operations; cross-department UNC test | HR allowed, unauthorized shares denied |
+| Test cleanup | ADUC nested groups | Nolan has no direct or temporary HR Read grant |
+| Leaver | AD/Entra Emma; administrator session-revocation action/audit | Disabled, department access removed; record revocation separately |
+| Intune | Client Info Sync and actual policy/app reports | Management sync success; inspect each result rather than one overview badge |
+| LAPS | DC metadata; event 10018 | LabAdmin, recent rotation, successful authorized decryption |
+| BitLocker | manage-bde -status C: and directory records | 100%, Protection On, recovery record in AD/Entra |
+
+Save non-secret evidence with the test account, date, operation and expected/actual result. Keep the baseline CSV unchanged; export live inventory separately if needed.
+
+Backup/restore, network ACL implementation, extra department clients, and expanded voice/guest/Wi-Fi deployment are excluded. Do not describe snapshots, recovery-key storage, or a disabled user as proof of a tested data restore.
 
 ## Official references
 
@@ -907,3 +1219,9 @@ After this, continue the approved ACL, BitLocker/LAPS, backup/restore and additi
 - [Windows compliance settings](https://learn.microsoft.com/en-us/intune/device-security/compliance/ref-windows-settings)
 - [Settings catalog](https://learn.microsoft.com/en-us/intune/device-configuration/settings-catalog/)
 - [Company Portal app deployment](https://learn.microsoft.com/en-us/intune/app-management/deployment/add-company-portal-autopilot)
+
+- [Windows LAPS with AD](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-scenarios-windows-server-active-directory)
+- [Windows LAPS supported platforms](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview)
+- [Intune BitLocker configuration](https://learn.microsoft.com/en-us/intune/device-configuration/endpoint-security/encrypt-bitlocker-windows)
+- [BitLocker CSP recovery options](https://learn.microsoft.com/en-us/windows/client-management/mdm/bitlocker-csp)
+- [BitLocker client troubleshooting](https://learn.microsoft.com/en-us/troubleshoot/mem/intune/device-protection/troubleshoot-bitlocker-policies)
